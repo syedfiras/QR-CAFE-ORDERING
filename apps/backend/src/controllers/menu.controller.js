@@ -10,6 +10,8 @@ export const getMenu = async (req, res) => {
         id,
         name,
         price,
+        image_url,
+        description,
         is_available
       )
     `)
@@ -18,3 +20,4 @@ export const getMenu = async (req, res) => {
   if (error) return res.status(500).json(error);
   res.json(data);
 };
+

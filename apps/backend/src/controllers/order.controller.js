@@ -104,30 +104,55 @@ export const getActiveOrderByTable = async (req, res) => {
   try {
     const { table_number } = req.params;
 
-    // 1. Get table UUID
-    const { data: table, error: tableError } = await supabase
+    // 1. Get table ID
+    const { data: table } = await supabase
       .from("cafe_tables")
       .select("id")
       .eq("table_number", table_number)
       .single();
 
-    if (tableError || !table) {
-      return res.json(null);
-    }
+    if (!table) return res.json(null);
 
-    // 2. Get latest active order
-    const { data: order, error } = await supabase
+    // 2. Get active order
+    const { data: order } = await supabase
       .from("orders")
-      .select("*")
+      .select(`
+        id,
+        status,
+        created_at,
+        order_items (
+          id,
+          quantity,
+          is_cancelled,
+          menu_items (
+            name,
+            price
+          )
+        )
+      `)
       .eq("table_id", table.id)
       .neq("status", "COMPLETED")
+      .neq("status", "CANCELLED")
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
 
-    if (error) return res.json(null);
+    if (!order) return res.json(null);
 
-    res.json(order);
+    // 3. Calculate total (exclude cancelled items)
+    const items = order.order_items.filter(i => !i.is_cancelled);
+
+    const total = items.reduce(
+      (sum, i) => sum + i.quantity * i.menu_items.price,
+      0
+    );
+
+    res.json({
+      id: order.id,
+      status: order.status,
+      items,
+      total
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json(null);
@@ -164,6 +189,30 @@ export const markPaymentPaid = async (req, res) => {
         status: "PAID",
       },
     ]);
+
+  if (error) return res.status(500).json(error);
+  res.json({ success: true });
+};
+
+export const cancelOrderItem = async (req, res) => {
+  const { item_id } = req.params;
+
+  const { error } = await supabase
+    .from("order_items")
+    .update({ is_cancelled: true })
+    .eq("id", item_id);
+
+  if (error) return res.status(500).json(error);
+  res.json({ success: true });
+};
+
+export const cancelOrder = async (req, res) => {
+  const { order_id } = req.params;
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ status: "CANCELLED" })
+    .eq("id", order_id);
 
   if (error) return res.status(500).json(error);
   res.json({ success: true });
