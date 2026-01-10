@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 router.post("/", createOrder);
-router.get("/active/:table_id", getActiveOrderByTable);
+router.get("/active/:table_number", getActiveOrderByTable);
 router.get("/active", getAllActiveOrders);
 router.patch("/:order_id/status", updateOrderStatus);
 router.post("/:order_id/pay", markPaymentPaid);
