@@ -3,9 +3,10 @@ import 'dotenv/config';
 import supabase from "./config/supabase.js";
 import orderRoutes from "./routes/order.routes.js";
 import menuRoutes from "./routes/menu.routes.js";
-
+import cors from "cors";
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.use("/api/orders", orderRoutes);
 app.use("/api/menu", menuRoutes);
 app.get("/", (req, res) => {
