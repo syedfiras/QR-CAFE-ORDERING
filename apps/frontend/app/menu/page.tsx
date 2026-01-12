@@ -45,7 +45,7 @@ export default function MenuPage() {
 
     const checkActiveOrder = async () => {
       const activeOrder = await getActiveOrder(table);
-      if (activeOrder && !params.get("add_more")) {
+      if (activeOrder && !params.get("add_more") && !params.get("new")) {
         // Redirect to order page if active order exists
         router.push(`/order?table=${table}`);
       } else if (params.get("add_more")) {

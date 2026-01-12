@@ -6,14 +6,17 @@ import supabase from "../config/supabase.js";
  */
 export const getMetrics = async (req, res) => {
   try {
-    // Get today's date range (start and end of day in UTC)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStart = today.toISOString();
+    // Get today's date range (start and end of day in IST)
+    const getIstStart = () => {
+      const d = new Date();
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      const ist = new Date(utc + (3600000 * 5.5));
+      ist.setHours(0,0,0,0);
+      return new Date(ist.getTime() - (3600000 * 5.5)); // Start of day in IST as a UTC date object
+    };
     
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const todayEnd = tomorrow.toISOString();
+    const todayStart = getIstStart().toISOString();
+    const todayEnd = new Date(getIstStart().getTime() + 24 * 60 * 60 * 1000).toISOString();
 
     // 1. Get all orders created today
     const { data: ordersToday, error: ordersError } = await supabase

@@ -42,8 +42,15 @@ export default function OrderCard({
   onMarkPaid,
 }: OrderCardProps) {
   const getRelativeTime = (timestamp: string) => {
+    // Ensure the timestamp is parsed correctly. 
+    // If it doesn't end with Z or a timezone offset, assume it's UTC from the database.
+    const isoTimestamp = timestamp.includes('T') ? timestamp : timestamp.replace(' ', 'T');
+    const normalizedTimestamp = (isoTimestamp.endsWith('Z') || isoTimestamp.includes('+')) 
+      ? isoTimestamp 
+      : `${isoTimestamp}Z`;
+
     const now = new Date().getTime();
-    const then = new Date(timestamp).getTime();
+    const then = new Date(normalizedTimestamp).getTime();
     const diff = Math.floor((now - then) / 1000 / 60); // minutes
 
     if (diff < 1) return "Just now";

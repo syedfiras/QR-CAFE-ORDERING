@@ -1,32 +1,41 @@
 import supabase from "../config/supabase.js";
 
+// Get all active orders (PENDING/PREPARING/COMPLETED/CANCELLED created today)
 export const getAllActiveOrders = async (req, res) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  try {
+    const getIstStart = () => {
+      const d = new Date();
+      const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+      const ist = new Date(utc + (3600000 * 5.5));
+      ist.setHours(0,0,0,0);
+      return new Date(ist.getTime() - (3600000 * 5.5));
+    };
+    const todayStart = getIstStart().toISOString();
 
-  const { data, error } = await supabase
-    .from("orders")
-    .select(`
-      id,
-      status,
-      created_at,
-      cafe_tables ( table_number ),
-      order_items (
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
         id,
-        quantity,
-        is_cancelled,
-        menu_items ( id, name, price )
-      ),
-      payments (
         status,
-        method
-      )
-    `)
-    .gte("created_at", today.toISOString())
-    .order("created_at", { ascending: false });
+        created_at,
+        cafe_tables ( table_number ),
+        order_items (
+          id,
+          quantity,
+          is_cancelled,
+          menu_items ( name, price )
+        ),
+        payments ( status, method )
+      `)
+      .gte("created_at", todayStart)
+      .order("created_at", { ascending: false });
 
-  if (error) return res.status(500).json(error);
-  res.json(data);
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
 };
 
 
@@ -106,62 +115,52 @@ export const createOrder = async (req, res) => {
 };
 
 
-/**
- * Get active order for a table
- */
+// Get active order (PENDING/PREPARING) for a table
 export const getActiveOrderByTable = async (req, res) => {
+  const { table_number } = req.params;
+
   try {
-    const { table_number } = req.params;
+    // Look for PENDING or PREPARING orders.
+    // Also include COMPLETED orders from the last 5 minutes (IST aware).
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
 
-    // 1. Get table ID
-    const { data: table } = await supabase
-      .from("cafe_tables")
-      .select("id")
-      .eq("table_number", table_number)
-      .single();
-
-    if (!table) return res.json(null);
-
-    // 2. Get active order
-    const { data: order } = await supabase
+    const { data, error } = await supabase
       .from("orders")
       .select(`
         id,
         status,
         created_at,
+        cafe_tables!inner ( table_number ),
         order_items (
           id,
           quantity,
           is_cancelled,
-          menu_items (
-            name,
-            price
-          )
+          menu_items ( name, price )
         )
       `)
-      .eq("table_id", table.id)
-      .neq("status", "COMPLETED")
-      .neq("status", "CANCELLED")
+      .eq("cafe_tables.table_number", table_number)
+      .or(`status.in.("PENDING","PREPARING"),and(status.eq.COMPLETED,created_at.gte.${fiveMinutesAgo})`)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (!order) return res.json(null);
+    if (error) throw error;
+    
+    // Transform to match frontend interface
+    if (data) {
+      data.items = data.order_items.map(oi => ({
+        id: oi.id,
+        quantity: oi.quantity,
+        is_cancelled: oi.is_cancelled,
+        menu_items: oi.menu_items
+      }));
+      data.total = data.order_items
+        .filter(i => !i.is_cancelled)
+        .reduce((sum, i) => sum + (i.menu_items.price * i.quantity), 0);
+    }
 
-    // 3. Calculate total (exclude cancelled items)
-    const items = order.order_items.filter(i => !i.is_cancelled);
-
-    const total = items.reduce(
-      (sum, i) => sum + i.quantity * i.menu_items.price,
-      0
-    );
-
-    res.json({
-      id: order.id,
-      status: order.status,
-      items,
-      total
-    });
+    res.json(data);
   } catch (err) {
     console.error(err);
     res.status(500).json(null);
@@ -273,11 +272,11 @@ export const getOrderHistory = async (req, res) => {
     const { date } = req.query; // Expects YYYY-MM-DD
     if (!date) return res.status(400).json({ error: "Date is required" });
 
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
+    // date is YYYY-MM-DD. We want 00:00 IST to 23:59 IST.
+    // IST = UTC + 5:30. So 00:00 IST = 18:30 UTC previous day.
+    const dateObj = new Date(`${date}T00:00:00`);
+    const startDate = new Date(dateObj.getTime() - (5.5 * 60 * 60 * 1000));
+    const endDate = new Date(startDate.getTime() + (24 * 60 * 60 * 1000));
 
     const { data, error } = await supabase
       .from("orders")
@@ -297,7 +296,7 @@ export const getOrderHistory = async (req, res) => {
         )
       `)
       .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString())
+      .lt("created_at", endDate.toISOString())
       .order("created_at", { ascending: false });
 
     if (error) throw error;
