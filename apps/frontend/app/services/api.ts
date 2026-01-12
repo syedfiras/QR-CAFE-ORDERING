@@ -1,4 +1,16 @@
-const BASE_URL = "http://localhost:5000/api";
+const getBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    // If we're on a website, try to use the same host but port 5000 if local, 
+    // or just use a relative path if the backend is proxied/hosted alongside.
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:5000/api";
+    }
+  }
+  return "/api"; // Default to relative path for production/hosted environments
+};
+
+const BASE_URL = getBaseUrl();
 
 // TypeScript Interfaces
 export interface MenuItem {
@@ -15,6 +27,7 @@ export interface OrderItem {
   quantity: number;
   is_cancelled: boolean;
   menu_items: {
+    id: string;
     name: string;
     price: number;
   };
@@ -76,9 +89,11 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
 };
 
 // Admin Order Management APIs
-export const cancelOrderItem = async (itemId: string) => {
+export const cancelOrderItem = async (itemId: string, quantity?: number) => {
   const res = await fetch(`${BASE_URL}/orders/items/${itemId}/cancel`, {
     method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ quantity }),
   });
   return res.json();
 };
@@ -100,5 +115,10 @@ export const markAsPaid = async (orderId: string) => {
 // Metrics API
 export const getMetrics = async (): Promise<Metrics> => {
   const res = await fetch(`${BASE_URL}/orders/metrics`);
+  return res.json();
+};
+
+export const getOrderHistory = async (date: string) => {
+  const res = await fetch(`${BASE_URL}/orders/history?date=${date}`);
   return res.json();
 };

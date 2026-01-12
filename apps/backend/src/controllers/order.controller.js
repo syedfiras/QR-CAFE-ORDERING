@@ -1,6 +1,9 @@
 import supabase from "../config/supabase.js";
 
 export const getAllActiveOrders = async (req, res) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const { data, error } = await supabase
     .from("orders")
     .select(`
@@ -9,12 +12,18 @@ export const getAllActiveOrders = async (req, res) => {
       created_at,
       cafe_tables ( table_number ),
       order_items (
+        id,
         quantity,
-        menu_items ( name )
+        is_cancelled,
+        menu_items ( id, name, price )
+      ),
+      payments (
+        status,
+        method
       )
     `)
-    .neq("status", "COMPLETED")
-    .order("created_at", { ascending: true });
+    .gte("created_at", today.toISOString())
+    .order("created_at", { ascending: false });
 
   if (error) return res.status(500).json(error);
   res.json(data);
@@ -43,15 +52,15 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: "Invalid table number" });
     }
 
-    // 2. Check for existing active order
+    // 2. Check for existing active order (Only append to PENDING or PREPARING)
     const { data: existingOrder } = await supabase
       .from("orders")
       .select("id")
       .eq("table_id", table.id)
-      .neq("status", "COMPLETED")
+      .in("status", ["PENDING", "PREPARING"])
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     let orderId;
 
@@ -195,15 +204,56 @@ export const markPaymentPaid = async (req, res) => {
 };
 
 export const cancelOrderItem = async (req, res) => {
-  const { item_id } = req.params;
+  try {
+    const { item_id } = req.params;
+    const { quantity } = req.body; // Optional quantity to cancel
 
-  const { error } = await supabase
-    .from("order_items")
-    .update({ is_cancelled: true })
-    .eq("id", item_id);
+    // 1. Get current item details
+    const { data: item, error: fetchError } = await supabase
+      .from("order_items")
+      .select("order_id, menu_item_id, quantity, is_cancelled")
+      .eq("id", item_id)
+      .single();
 
-  if (error) return res.status(500).json(error);
-  res.json({ success: true });
+    if (fetchError || !item) return res.status(404).json({ error: "Item not found" });
+
+    // 2. If it's a partial cancellation
+    if (quantity && quantity > 0 && quantity < item.quantity) {
+      // Reduce original quantity
+      const { error: updateError } = await supabase
+        .from("order_items")
+        .update({ quantity: item.quantity - quantity })
+        .eq("id", item_id);
+
+      if (updateError) throw updateError;
+
+      // Insert new cancelled row for the cancelled part
+      const { error: insertError } = await supabase
+        .from("order_items")
+        .insert([{
+          order_id: item.order_id,
+          menu_item_id: item.menu_item_id,
+          quantity: quantity,
+          is_cancelled: true
+        }]);
+
+      if (insertError) throw insertError;
+    } 
+    // 3. Full cancellation (as before)
+    else {
+      const { error } = await supabase
+        .from("order_items")
+        .update({ is_cancelled: true })
+        .eq("id", item_id);
+
+      if (error) throw error;
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error during item cancellation" });
+  }
 };
 
 export const cancelOrder = async (req, res) => {
@@ -216,4 +266,44 @@ export const cancelOrder = async (req, res) => {
 
   if (error) return res.status(500).json(error);
   res.json({ success: true });
+};
+
+export const getOrderHistory = async (req, res) => {
+  try {
+    const { date } = req.query; // Expects YYYY-MM-DD
+    if (!date) return res.status(400).json({ error: "Date is required" });
+
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        id,
+        status,
+        created_at,
+        cafe_tables ( table_number ),
+        order_items (
+          id,
+          quantity,
+          is_cancelled,
+          menu_items ( name, price )
+        ),
+        payments (
+          status
+        )
+      `)
+      .gte("created_at", startDate.toISOString())
+      .lte("created_at", endDate.toISOString())
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
 };

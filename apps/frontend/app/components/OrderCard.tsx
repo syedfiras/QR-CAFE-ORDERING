@@ -56,9 +56,9 @@ export default function OrderCard({
   const total = order.total || 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-soft p-6 hover:shadow-soft-lg transition-shadow">
+    <div className="bg-white rounded-2xl shadow-soft p-6 hover:shadow-soft-lg transition-shadow border border-neutral-100">
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 border-b border-neutral-50 pb-3">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h3 className="font-display text-2xl font-bold text-neutral-800">
@@ -70,7 +70,7 @@ export default function OrderCard({
               </span>
             )}
           </div>
-          <p className="text-neutral-500 text-sm">
+          <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider">
             {getRelativeTime(order.created_at)}
           </p>
         </div>
@@ -78,23 +78,30 @@ export default function OrderCard({
       </div>
 
       {/* Items */}
-      <div className="mb-4 space-y-2">
+      <div className="mb-6 space-y-3">
         {activeItems.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between group"
+            className="flex items-center justify-between group py-1"
           >
             <div className="flex-1">
-              <span className="text-neutral-800">
-                {item.menu_items.name} × {item.quantity}
-              </span>
+              <div className="flex items-center justify-between mr-4">
+                <span className="text-neutral-800 font-medium">
+                  {item.menu_items.name} × {item.quantity}
+                </span>
+                <span className="text-neutral-500 text-sm">
+                  ₹{(item.menu_items.price || 0) * item.quantity}
+                </span>
+              </div>
             </div>
-            <button
-              onClick={() => onCancelItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 text-status-cancelled hover:bg-red-50 px-2 py-1 rounded text-xs transition-all"
-            >
-              Cancel
-            </button>
+            {order.status !== "COMPLETED" && (
+              <button
+                onClick={() => onCancelItem(item.id)}
+                className="text-status-cancelled hover:bg-red-50 px-2 py-1 rounded text-[10px] font-bold uppercase transition-all border border-red-100"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         ))}
 
@@ -102,51 +109,52 @@ export default function OrderCard({
         {order.order_items
           .filter((item) => item.is_cancelled)
           .map((item) => (
-            <div key={item.id} className="flex items-center gap-2 opacity-50">
+            <div key={item.id} className="flex items-center justify-between opacity-40 py-1 italic">
               <span className="text-neutral-600 line-through text-sm">
                 {item.menu_items.name} × {item.quantity}
               </span>
-              <span className="text-xs text-status-cancelled">Cancelled</span>
+              <span className="text-[10px] font-bold text-status-cancelled uppercase">Cancelled</span>
             </div>
           ))}
       </div>
 
       {/* Total */}
-      <div className="border-t border-neutral-200 pt-3 mb-4">
+      <div className="border-t border-neutral-200 pt-3 mb-6">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-neutral-700">Total</span>
-          <span className="text-xl font-bold text-primary-400">₹{total}</span>
+          <span className="font-semibold text-neutral-700">Order Total</span>
+          <span className="text-2xl font-bold text-primary-400">₹{total}</span>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         {order.status === "PENDING" && (
-          <Button size="sm" onClick={onPrepare} className="flex-1">
+          <Button size="sm" onClick={onPrepare} className="flex-1 bg-primary-300 hover:bg-primary-400">
             🔥 Prepare
           </Button>
         )}
 
         {order.status === "PREPARING" && (
-          <Button size="sm" onClick={onComplete} className="flex-1">
+          <Button size="sm" onClick={onComplete} className="flex-1 bg-status-completed hover:bg-green-400 text-green-900 border-green-200">
             ✅ Complete
           </Button>
         )}
 
-        {!order.isPaid &&
-          (order.status === "COMPLETED" || order.status === "PREPARING") && (
+        {!order.isPaid && order.status === "COMPLETED" && (
             <Button
               size="sm"
               variant="secondary"
               onClick={onMarkPaid}
-              className="flex-1"
+              className="flex-1 shadow-sm"
             >
               💳 Mark as Paid
             </Button>
           )}
 
         {order.status !== "CANCELLED" && order.status !== "COMPLETED" && (
-          <Button size="sm" variant="destructive" onClick={onCancel}>
+          <Button size="sm" variant="destructive" 
+            onClick={onCancel}
+          >
             Cancel Order
           </Button>
         )}
