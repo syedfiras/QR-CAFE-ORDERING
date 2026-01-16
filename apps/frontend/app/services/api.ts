@@ -53,6 +53,9 @@ export interface Metrics {
 // Menu APIs
 export const getMenu = async () => {
   const res = await fetch(`${BASE_URL}/menu`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch menu: ${res.statusText}`);
+  }
   return res.json();
 };
 

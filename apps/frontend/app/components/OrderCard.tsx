@@ -45,8 +45,8 @@ export default function OrderCard({
     // Ensure the timestamp is parsed correctly. 
     // If it doesn't end with Z or a timezone offset, assume it's UTC from the database.
     const isoTimestamp = timestamp.includes('T') ? timestamp : timestamp.replace(' ', 'T');
-    const normalizedTimestamp = (isoTimestamp.endsWith('Z') || isoTimestamp.includes('+')) 
-      ? isoTimestamp 
+    const normalizedTimestamp = (isoTimestamp.endsWith('Z') || isoTimestamp.includes('+'))
+      ? isoTimestamp
       : `${isoTimestamp}Z`;
 
     const now = new Date().getTime();
@@ -54,116 +54,139 @@ export default function OrderCard({
     const diff = Math.floor((now - then) / 1000 / 60); // minutes
 
     if (diff < 1) return "Just now";
-    if (diff < 60) return `${diff} min${diff > 1 ? "s" : ""} ago`;
+    if (diff < 60) return `${diff} min ago`;
     const hours = Math.floor(diff / 60);
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    return `${hours} hr ago`;
   };
 
   const activeItems = order.order_items.filter((item) => !item.is_cancelled);
   const total = order.total || 0;
 
   return (
-    <div className="bg-white rounded-2xl shadow-soft p-6 hover:shadow-soft-lg transition-shadow border border-neutral-100">
+    <div className="bg-white rounded-[2.5rem] shadow-sm p-6 hover:shadow-xl transition-all duration-300 border border-neutral-100 group relative overflow-hidden">
+      {/* Table Badge Absolute */}
+      <div className="absolute top-0 left-0 bg-primary-50 pl-4 pb-6 pt-4 pr-6 rounded-br-[2.5rem]">
+        <span className="font-display text-2xl font-bold text-primary-500">Table {order.cafe_tables.table_number}</span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-start justify-between mb-4 border-b border-neutral-50 pb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-1">
-            <h3 className="font-display text-2xl font-bold text-neutral-800">
-              Table {order.cafe_tables.table_number}
-            </h3>
-            {order.isPaid && (
-              <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-semibold">
-                💳 Paid
-              </span>
-            )}
-          </div>
-          <p className="text-neutral-500 text-xs font-medium uppercase tracking-wider">
+      <div className="flex flex-col gap-1 mb-8 items-end">
+        <div className="flex items-center gap-2">
+          <h3 className="font-display text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
             {getRelativeTime(order.created_at)}
-          </p>
+          </h3>
+          <span className="text-neutral-300">•</span>
+
         </div>
-        <StatusBadge status={order.status} />
+        <StatusBadge status={order.status} size="sm" />
       </div>
 
       {/* Items */}
-      <div className="mb-6 space-y-3">
+      <div className="mb-8 space-y-4">
         {activeItems.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between group py-1"
+            className="flex flex-col py-2 border-b border-dashed border-neutral-100 last:border-0"
           >
-            <div className="flex-1">
-              <div className="flex items-center justify-between mr-4">
-                <span className="text-neutral-800 font-medium">
-                  {item.menu_items.name} × {item.quantity}
-                </span>
-                <span className="text-neutral-500 text-sm">
+            <div className="flex justify-between items-start gap-3">
+              <div className="flex-1">
+                <h4 className="text-neutral-800 font-bold text-base leading-tight">
+                  {item.menu_items.name}
+                </h4>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="bg-primary-50 text-primary-600 px-2.5 py-0.5 rounded-md text-xs font-bold">
+                    {item.quantity}x
+                  </span>
+                  <span className="text-xs text-neutral-400 font-medium">
+                    @ ₹{item.menu_items.price}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                <span className="font-bold text-neutral-800">
                   ₹{(item.menu_items.price || 0) * item.quantity}
                 </span>
+                {order.status !== "COMPLETED" && (
+                  <button
+                    onClick={() => onCancelItem(item.id)}
+                    className="text-[10px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-full transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
             </div>
-            {order.status !== "COMPLETED" && (
-              <button
-                onClick={() => onCancelItem(item.id)}
-                className="text-status-cancelled hover:bg-red-50 px-2 py-1 rounded text-[10px] font-bold uppercase transition-all border border-red-100"
-              >
-                Cancel
-              </button>
-            )}
           </div>
         ))}
 
         {/* Cancelled items */}
-        {order.order_items
-          .filter((item) => item.is_cancelled)
-          .map((item) => (
-            <div key={item.id} className="flex items-center justify-between opacity-40 py-1 italic">
-              <span className="text-neutral-600 line-through text-sm">
-                {item.menu_items.name} × {item.quantity}
-              </span>
-              <span className="text-[10px] font-bold text-status-cancelled uppercase">Cancelled</span>
-            </div>
-          ))}
+        {order.order_items.filter((item) => item.is_cancelled).length > 0 && (
+          <div className="pt-4 mt-4 border-t border-dashed border-neutral-100">
+            {order.order_items
+              .filter((item) => item.is_cancelled)
+              .map((item) => (
+                <div key={item.id} className="flex items-center justify-between opacity-40 py-1">
+                  <span className="text-neutral-500 line-through text-xs font-medium">
+                    {item.quantity}x {item.menu_items.name}
+                  </span>
+                  <span className="text-[10px] font-bold text-red-500 uppercase">Cancelled</span>
+                </div>
+              ))}
+          </div>
+        )}
       </div>
 
       {/* Total */}
-      <div className="border-t border-neutral-200 pt-3 mb-6">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-neutral-700">Order Total</span>
-          <span className="text-2xl font-bold text-primary-400">₹{total}</span>
-        </div>
+      <div className="flex items-end justify-between mb-6 pb-6 border-b border-neutral-100">
+        <span className="text-neutral-400 text-xs font-bold uppercase tracking-widest">Total Bill</span>
+        <span className="text-3xl font-bold text-neutral-800 tracking-tight">₹{total}</span>
       </div>
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {order.status === "PENDING" && (
-          <Button size="sm" onClick={onPrepare} className="flex-1 bg-primary-300 hover:bg-primary-400">
-            🔥 Prepare
-          </Button>
+          <>
+            <Button size="sm" onClick={onPrepare} className="bg-primary-500  text-white shadow-lg shadow-primary-200 h-12 rounded-xl text-md">
+              Prepare
+            </Button>
+            <Button size="sm" variant="destructive" onClick={onCancel} className="  border-red text-red h-12 rounded-xl">
+              Cancel
+            </Button>
+          </>
         )}
 
         {order.status === "PREPARING" && (
-          <Button size="sm" onClick={onComplete} className="flex-1 bg-status-completed hover:bg-green-400 text-green-900 border-green-200">
-            ✅ Complete
+          <Button size="sm" onClick={onComplete} className="col-span-2 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-200 h-12 rounded-xl text-md">
+            Complete
           </Button>
         )}
 
         {!order.isPaid && order.status === "COMPLETED" && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={onMarkPaid}
-              className="flex-1 shadow-sm"
-            >
-              💳 Mark as Paid
-            </Button>
-          )}
-
-        {order.status !== "CANCELLED" && order.status !== "COMPLETED" && (
-          <Button size="sm" variant="destructive" 
-            onClick={onCancel}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onMarkPaid}
+            className="col-span-2  text-pink-500  h-12 rounded-xl text-md shadow-lg shadow-neutral-200"
           >
-            Cancel Order
+            💳 Mark as Paid
           </Button>
+        )}
+
+        {order.status !== "CANCELLED" && order.status !== "COMPLETED" && order.status !== "PENDING" && (
+          <div className="col-span-2 flex justify-center mt-2">
+            <button
+              onClick={onCancel}
+              className="text-neutral-300 hover:text-red-500 text-xs font-bold uppercase tracking-widest transition-colors"
+            >
+              Cancel Order
+            </button>
+          </div>
+        )}
+        {order.status === "COMPLETED" && (
+          <div className="col-span-2 text-center text-neutral-300 text-xs font-bold uppercase tracking-widest">
+            Completed
+          </div>
         )}
       </div>
     </div>

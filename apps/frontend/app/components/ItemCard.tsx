@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { menuImages } from "../utils/menuImages";
 
 interface MenuItem {
   id: string;
@@ -16,17 +17,19 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({ item, onClick }: ItemCardProps) {
+  const imageUrl = item.image_url || menuImages[item.name];
+
   return (
     <button
       onClick={onClick}
       disabled={!item.is_available}
-      className="group bg-white rounded-2xl shadow-soft overflow-hidden hover:shadow-soft-lg transition-all duration-300 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed text-left w-full"
+      className="group bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-left w-full border border-neutral-100"
     >
       {/* Image */}
-      <div className="relative h-48 w-full bg-neutral-100 overflow-hidden">
-        {item.image_url ? (
+      <div className="relative h-44 w-full bg-neutral-50 overflow-hidden rounded-t-3xl">
+        {imageUrl ? (
           <Image
-            src={item.image_url}
+            src={imageUrl}
             alt={item.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"

@@ -258,7 +258,7 @@ export default function OrderPage() {
         </div>
 
         {/* Info message */}
-        <div className="bg-neutral-800 rounded-3xl p-6 text-center mb-10 shadow-lg">
+        <div className="bg-pink-300 rounded-3xl p-6 text-center mb-10 shadow-lg">
           <p className="text-white text-sm font-medium flex items-center justify-center gap-2">
             <span className="text-xl">💡</span> For assistance or faster billing, please call staff
           </p>
