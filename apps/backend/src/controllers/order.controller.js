@@ -18,6 +18,7 @@ export const getAllActiveOrders = async (req, res) => {
         id,
         status,
         created_at,
+        updated_at,
         cafe_tables ( table_number ),
         order_items (
           id,
@@ -131,6 +132,7 @@ export const getActiveOrderByTable = async (req, res) => {
         id,
         status,
         created_at,
+        updated_at,
         cafe_tables!inner ( table_number ),
         order_items (
           id,
@@ -177,7 +179,7 @@ export const updateOrderStatus = async (req, res) => {
 
   const { error } = await supabase
     .from("orders")
-    .update({ status })
+    .update({ status, updated_at: new Date() })
     .eq("id", order_id);
 
   if (error) return res.status(400).json(error);
@@ -260,7 +262,7 @@ export const cancelOrder = async (req, res) => {
 
   const { error } = await supabase
     .from("orders")
-    .update({ status: "CANCELLED" })
+    .update({ status: "CANCELLED", updated_at: new Date() })
     .eq("id", order_id);
 
   if (error) return res.status(500).json(error);
@@ -284,6 +286,7 @@ export const getOrderHistory = async (req, res) => {
         id,
         status,
         created_at,
+        updated_at,
         cafe_tables ( table_number ),
         order_items (
           id,

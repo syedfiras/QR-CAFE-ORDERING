@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import StatusBadge from "./StatusBadge";
 import Button from "./Button";
 
@@ -16,6 +16,7 @@ interface AdminOrder {
   id: string;
   status: "PENDING" | "PREPARING" | "COMPLETED" | "CANCELLED";
   created_at: string;
+  updated_at?: string;
   cafe_tables: {
     table_number: number;
   };
@@ -41,153 +42,197 @@ export default function OrderCard({
   onCancelItem,
   onMarkPaid,
 }: OrderCardProps) {
-  const getRelativeTime = (timestamp: string) => {
-    // Ensure the timestamp is parsed correctly. 
-    // If it doesn't end with Z or a timezone offset, assume it's UTC from the database.
-    const isoTimestamp = timestamp.includes('T') ? timestamp : timestamp.replace(' ', 'T');
-    const normalizedTimestamp = (isoTimestamp.endsWith('Z') || isoTimestamp.includes('+'))
-      ? isoTimestamp
-      : `${isoTimestamp}Z`;
+  const [, setTick] = useState(0);
 
-    const now = new Date().getTime();
-    const then = new Date(normalizedTimestamp).getTime();
-    const diff = Math.floor((now - then) / 1000 / 60); // minutes
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
-    if (diff < 1) return "Just now";
-    if (diff < 60) return `${diff} min ago`;
-    const hours = Math.floor(diff / 60);
+  // Helper to safely parse dates, assuming UTC if no offset
+  const parseDate = (dateStr: string) => {
+    if (!dateStr) return new Date();
+    // If string has already 'Z' or offset, usage is compliant
+    if (dateStr.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateStr)) {
+        return new Date(dateStr);
+    }
+    // Assume UTC if missing
+    return new Date(`${dateStr}Z`);
+  };
+
+  const formatToIST = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = parseDate(dateStr);
+    
+    return new Intl.DateTimeFormat('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata'
+    }).format(date);
+  };
+
+  const getRelativeTime = (dateStr: string) => {
+    const date = parseDate(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 1000 / 60);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    const hours = Math.floor(diffMins / 60);
     return `${hours} hr ago`;
+  };
+
+  const getDuration = (startStr: string, endStr?: string) => {
+    if (!endStr) return null;
+    const start = parseDate(startStr);
+    const end = parseDate(endStr);
+    const diffMins = Math.floor((end.getTime() - start.getTime()) / 1000 / 60);
+    return `${diffMins} mins`;
   };
 
   const activeItems = order.order_items.filter((item) => !item.is_cancelled);
   const total = order.total || 0;
 
+  // Timing Logic
+  // Use updated_at if available for finished states, otherwise fallback might be needed or just show created
+  const createdTime = formatToIST(order.created_at);
+  const isCompleted = order.status === 'COMPLETED';
+  // If we don't have updated_at, we can't show exact completion time. 
+  // We'll rely on what's passed. If missing, UI simply won't show the range end.
+  const completedTime = isCompleted && order.updated_at ? formatToIST(order.updated_at) : null;
+  const duration = isCompleted && order.updated_at ? getDuration(order.created_at, order.updated_at) : null;
+  const relativeTime = getRelativeTime(isCompleted && order.updated_at ? order.updated_at : order.created_at);
+
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-sm p-6 hover:shadow-xl transition-all duration-300 border border-neutral-100 group relative overflow-hidden">
-      {/* Table Badge Absolute */}
-      <div className="absolute top-0 left-0 bg-primary-50 pl-4 pb-6 pt-4 pr-6 rounded-br-[2.5rem]">
-        <span className="font-display text-2xl font-bold text-primary-500">Table {order.cafe_tables.table_number}</span>
-      </div>
-
-      {/* Header */}
-      <div className="flex flex-col gap-1 mb-8 items-end">
-        <div className="flex items-center gap-2">
-          <h3 className="font-display text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-            {getRelativeTime(order.created_at)}
-          </h3>
-          <span className="text-neutral-300">•</span>
-
+    <div className="bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col h-full">
+      {/* Header Bar - Clean & Solid */}
+      <div className="bg-white px-5 py-4 border-b border-neutral-100 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="bg-neutral-900 px-3 py-1.5 rounded-lg text-white font-bold text-base tracking-wide shadow-sm">
+             Table {order.cafe_tables.table_number}
+          </div>
+          <StatusBadge status={order.status} size="sm" />
         </div>
-        <StatusBadge status={order.status} size="sm" />
+        <div className="text-right flex flex-col items-end">
+             {isCompleted ? (
+                 <>
+                     <span className="text-xs font-semibold text-neutral-600">
+                        {createdTime} - {completedTime}
+                     </span>
+                     {duration && (
+                         <span className="text-[10px] uppercase font-bold text-green-600 tracking-wider mt-0.5">
+                             {duration}
+                         </span>
+                     )}
+                 </>
+             ) : (
+                <>
+                    <span className="text-xs font-semibold text-neutral-900">{createdTime}</span>
+                    <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">{relativeTime}</span>
+                </>
+             )}
+        </div>
       </div>
 
-      {/* Items */}
-      <div className="mb-8 space-y-4">
-        {activeItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-col py-2 border-b border-dashed border-neutral-100 last:border-0"
-          >
-            <div className="flex justify-between items-start gap-3">
-              <div className="flex-1">
-                <h4 className="text-neutral-800 font-bold text-base leading-tight">
-                  {item.menu_items.name}
-                </h4>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <span className="bg-primary-50 text-primary-600 px-2.5 py-0.5 rounded-md text-xs font-bold">
-                    {item.quantity}x
-                  </span>
-                  <span className="text-xs text-neutral-400 font-medium">
-                    @ ₹{item.menu_items.price}
-                  </span>
-                </div>
+      <div className="p-5 flex-1 flex flex-col bg-white">
+        {/* Items List - Strict 4-Column Grid */}
+        <div className="space-y-3 mb-6 flex-1">
+          <div className="grid grid-cols-12 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 px-1">
+             <div className="col-span-5">Item</div>
+             <div className="col-span-2 text-center">Qty</div>
+             <div className="col-span-3 text-right">Price</div>
+             <div className="col-span-2 text-right"></div>
+          </div>
+          {activeItems.map((item) => (
+            <div
+              key={item.id}
+              className="grid grid-cols-12 items-center py-3 px-1 border-b border-neutral-100 last:border-0"
+            >
+              {/* Item Name */}
+              <div className="col-span-5 pr-2">
+                <span className="text-sm font-semibold text-neutral-800 leading-tight">{item.menu_items.name}</span>
               </div>
-
-              <div className="flex flex-col items-end gap-2">
-                <span className="font-bold text-neutral-800">
-                  ₹{(item.menu_items.price || 0) * item.quantity}
-                </span>
-                {order.status !== "COMPLETED" && (
-                  <button
-                    onClick={() => onCancelItem(item.id)}
-                    className="text-[10px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-full transition-colors"
-                  >
-                    Cancel
-                  </button>
-                )}
+              
+              {/* Quantity */}
+              <div className="col-span-2 text-center">
+                 <span className="text-sm font-bold text-neutral-700 bg-neutral-100 px-2 py-1 rounded-lg">{item.quantity}</span>
+              </div>
+              
+              {/* Price */}
+              <div className="col-span-3 text-right">
+                 <span className="text-sm font-bold text-neutral-800">₹{(item.menu_items.price || 0) * item.quantity}</span>
+              </div>
+              
+              {/* Action - DISTINCT COLUMN */}
+              <div className="col-span-2 text-right flex justify-end">
+                 {order.status !== "COMPLETED" && (
+                    <button
+                        onClick={() => onCancelItem(item.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
+                        title="Remove Item"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                 )}
               </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Cancelled items */}
-        {order.order_items.filter((item) => item.is_cancelled).length > 0 && (
-          <div className="pt-4 mt-4 border-t border-dashed border-neutral-100">
-            {order.order_items
-              .filter((item) => item.is_cancelled)
-              .map((item) => (
-                <div key={item.id} className="flex items-center justify-between opacity-40 py-1">
-                  <span className="text-neutral-500 line-through text-xs font-medium">
-                    {item.quantity}x {item.menu_items.name}
-                  </span>
-                  <span className="text-[10px] font-bold text-red-500 uppercase">Cancelled</span>
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
+          {/* Cancelled items summary */}
+           {order.order_items.filter((item) => item.is_cancelled).length > 0 && (
+             <div className="mt-4 pt-3 border-t border-dashed border-neutral-200">
+               <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">Cancelled Items</p>
+               {order.order_items.filter((item) => item.is_cancelled).map(item => (
+                   <div key={item.id} className="flex justify-between items-center py-1 opacity-60">
+                       <span className="text-xs text-neutral-500 line-through">{item.menu_items.name}</span>
+                       <span className="text-[10px] font-bold text-red-500 border border-red-200 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wide">Cancelled</span>
+                   </div>
+               ))}
+             </div>
+           )}
+        </div>
 
-      {/* Total */}
-      <div className="flex items-end justify-between mb-6 pb-6 border-b border-neutral-100">
-        <span className="text-neutral-400 text-xs font-bold uppercase tracking-widest">Total Bill</span>
-        <span className="text-3xl font-bold text-neutral-800 tracking-tight">₹{total}</span>
-      </div>
+        {/* Footer Area */}
+        <div className="pt-5 border-t border-neutral-100 mt-auto space-y-5">
+             <div className="flex items-end justify-between"> 
+                 <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Total Amount</span>
+                 <span className="text-3xl font-bold text-neutral-900 tracking-tight">₹{total}</span>
+             </div>
+             
+             <div className="grid grid-cols-2 gap-3">
+                {/* Action Buttons Logic - STRICT Hierarchy */}
+                {order.status === "PENDING" && (
+                  <>
+                     <Button size="md" variant="destructive" onClick={onCancel} className="w-full">
+                        Cancel
+                     </Button>
+                     <Button size="md" variant="primary" onClick={onPrepare} className="w-full">
+                        Prepare
+                     </Button>
+                  </>
+                )}
+                
+                {order.status === "PREPARING" && (
+                    <div className="col-span-2">
+                        <Button size="md" variant="primary" onClick={onComplete} className="w-full bg-primary-500 hover:bg-primary-600 text-white shadow-soft-lg">
+                            Complete Order
+                        </Button>
+                    </div>
+                )}
 
-      {/* Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        {order.status === "PENDING" && (
-          <>
-            <Button size="sm" onClick={onPrepare} className="bg-primary-500  text-white shadow-lg shadow-primary-200 h-12 rounded-xl text-md">
-              Prepare
-            </Button>
-            <Button size="sm" variant="destructive" onClick={onCancel} className="  border-red text-red h-12 rounded-xl">
-              Cancel
-            </Button>
-          </>
-        )}
-
-        {order.status === "PREPARING" && (
-          <Button size="sm" onClick={onComplete} className="col-span-2 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-200 h-12 rounded-xl text-md">
-            Complete
-          </Button>
-        )}
-
-        {!order.isPaid && order.status === "COMPLETED" && (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onMarkPaid}
-            className="col-span-2  text-pink-500  h-12 rounded-xl text-md shadow-lg shadow-neutral-200"
-          >
-            💳 Mark as Paid
-          </Button>
-        )}
-
-        {order.status !== "CANCELLED" && order.status !== "COMPLETED" && order.status !== "PENDING" && (
-          <div className="col-span-2 flex justify-center mt-2">
-            <button
-              onClick={onCancel}
-              className="text-neutral-300 hover:text-red-500 text-xs font-bold uppercase tracking-widest transition-colors"
-            >
-              Cancel Order
-            </button>
-          </div>
-        )}
-        {order.status === "COMPLETED" && (
-          <div className="col-span-2 text-center text-neutral-300 text-xs font-bold uppercase tracking-widest">
-            Completed
-          </div>
-        )}
+                {order.status === "COMPLETED" && !order.isPaid && (
+                     <div className="col-span-2">
+                        <Button size="md" variant="primary" onClick={onMarkPaid} className="w-full">
+                            Mark as Paid
+                        </Button>
+                     </div>
+                )}
+             </div>
+        </div>
       </div>
     </div>
   );

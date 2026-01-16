@@ -9,62 +9,52 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Bistro Yahya brand colors - soft pink aesthetic
+        // Bistro Yahya brand colors - Accent Pink #EC4899
         primary: {
-          50: "#FFF5F9",
-          100: "#FFE5F0",
-          200: "#FFCCE2",
-          300: "#FFB5D8",  // Main soft pink
-          400: "#FF99C8",
-          500: "#FF7DB8",
-          600: "#E6609D",
-          700: "#CC4482",
-          800: "#992D5F",
-          900: "#661D3F",
+          50: "#FDF2F8",
+          100: "#FCE7F3",
+          200: "#FBCFE8",
+          300: "#F9A8D4",
+          400: "#F472B6",
+          500: "#EC4899", // Main Accent
+          600: "#DB2777",
+          700: "#BE185D",
+          800: "#9D174D",
+          900: "#831843",
         },
-        // Neutral tones for backgrounds and text
+        // Neutral tones (Charcoal Scale)
         neutral: {
-          50: "#FAFAFA",
-          100: "#F5F5F5",
-          200: "#E5E5E5",
-          300: "#D4D4D4",
-          400: "#A3A3A3",
-          500: "#737373",
-          600: "#525252",
-          700: "#404040",
-          800: "#262626",
-          900: "#171717",
+          50: "#F9FAFB", // App BG
+          100: "#F3F4F6",
+          200: "#E5E7EB",
+          300: "#D1D5DB",
+          400: "#9CA3AF",
+          500: "#6B7280",
+          600: "#4B5563",
+          700: "#374151",
+          800: "#1F2937",
+          900: "#111827", // Toolbar
         },
-        // Accent dusty pink (from cafe photo)
-        dusty: {
-          100: "#F4E4E8",
-          200: "#E8C9D1",
-          300: "#D4A9B5",  // Dusty mauve from walls
-          400: "#C08999",
-          500: "#A8697A",
-        },
-        // Status colors
+        // Status Colors (Strict)
         status: {
-          pending: "#FCD34D",    // Warm yellow
-          preparing: "#FB923C",  // Warm orange  
-          completed: "#86EFAC",  // Soft green
-          cancelled: "#FCA5A5",  // Soft red
+          pending: "#F59E0B",
+          preparing: "#3B82F6",
+          completed: "#10B981",
+          cancelled: "#EF4444",
         },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-playfair)', 'Georgia', 'serif'],
       },
       borderRadius: {
-        'xl': '1rem',
-        '2xl': '1.5rem',
-        '3xl': '2rem',
+        'xl': '0.75rem', // 12px
+        '2xl': '1rem',   // 16px
+        '3xl': '1.5rem',
       },
       boxShadow: {
-        'soft': '0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06)',
-        'soft-lg': '0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08)',
-        'soft-xl': '0 8px 24px rgba(0, 0, 0, 0.08), 0 16px 48px rgba(0, 0, 0, 0.1)',
-        'pink-glow': '0 0 20px rgba(255, 181, 216, 0.3)',
+        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'soft-lg': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        'soft-xl': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
       },
       spacing: {
         '18': '4.5rem',

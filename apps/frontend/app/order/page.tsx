@@ -86,7 +86,7 @@ export default function OrderPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white p-6">
+      <div className="min-h-screen bg-linear-to-b from-primary-50 to-white p-6">
         <div className="max-w-2xl mx-auto space-y-4">
           <SkeletonCard variant="order" />
           <SkeletonCard variant="order" />
@@ -97,7 +97,7 @@ export default function OrderPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-primary-50 to-white flex items-center justify-center">
         <EmptyState
           title="No active order"
           description="Place an order from the menu to track it here"
@@ -113,7 +113,7 @@ export default function OrderPage() {
 
   if (order.status === "COMPLETED") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-linear-to-b from-primary-50 to-white flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white rounded-[3rem] shadow-soft-xl p-12 max-w-md w-full border border-neutral-100 flex flex-col items-center">
           <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-5xl mb-8 animate-bounce">
             🎉
@@ -136,7 +136,7 @@ export default function OrderPage() {
             <Button 
                 size="lg" 
                 onClick={() => router.push(`/menu?table=${table}&new=true`)}
-                className="w-full py-5 rounded-[2rem] text-lg font-bold shadow-soft-lg"
+                className="w-full py-5 rounded-4xL text-lg font-bold shadow-soft-lg"
             >
               Start New Order
             </Button>
@@ -164,7 +164,7 @@ export default function OrderPage() {
   const cancelledItems = order.items.filter((item) => item.is_cancelled);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white pb-24">
+    <div className="min-h-screen bg-linear-to-b from-primary-50 to-white pb-24">
       {/* Header */}
       <header className="bg-white shadow-soft">
         <div className="max-w-2xl mx-auto px-4 py-6 sm:px-6">
@@ -175,7 +175,7 @@ export default function OrderPage() {
               </h1>
               <p className="text-neutral-500 text-sm">Table {table}</p>
             </div>
-            <StatusBadge status={order.status} />
+                  {order && <StatusBadge status={order.status} />}
           </div>
           
           {/* Order time */}

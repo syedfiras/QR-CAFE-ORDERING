@@ -17,22 +17,22 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "font-medium rounded-2xl transition-all duration-200 active:scale-95 disabled:active:scale-100";
+    "font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:active:scale-100 flex items-center justify-center";
 
   const variants = {
     primary:
-      "bg-primary-300 text-white shadow-soft hover:bg-primary-400 hover:shadow-soft-lg disabled:bg-neutral-200",
+      "bg-primary-500 text-white shadow-soft hover:bg-primary-600 hover:shadow-soft-lg disabled:bg-neutral-200 disabled:text-neutral-400",
     secondary:
-      "bg-white text-primary-300 border-2 border-primary-300 hover:bg-primary-50",
+      "bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50 shadow-sm",
     destructive:
-      "bg-status-cancelled text-white shadow-soft hover:bg-red-500",
-    ghost: "text-primary-300 hover:bg-primary-50",
+      "bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-sm",
+    ghost: "text-neutral-600 hover:bg-neutral-100",
   };
 
   const sizes = {
     sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-base",
-    lg: "px-8 py-4 text-lg",
+    md: "px-5 py-2.5 text-base",
+    lg: "px-6 py-3 text-lg",
   };
 
   return (

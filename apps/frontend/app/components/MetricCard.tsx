@@ -13,23 +13,30 @@ export default function MetricCard({
   label,
   value,
   trend,
-  color = "",
+  color = "text-neutral-800",
 }: MetricCardProps) {
+  // Map color names to actual Tailwind classes if needed, or pass full classes
+  const colorClass = color.startsWith("text-") ? color : `text-${color}`;
+
   return (
-    <div className="bg-white rounded-[2rem] shadow-sm p-6 border border-neutral-100/50 hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1">
-      <div className="flex items-center justify-between mb-4">
-        <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl`}
-        >
-          {icon}
-        </div>
-        <div className={`text-4xl font-display font-bold text-${color} tracking-tight`}>{value}</div>
+    <div className="bg-white rounded-2xl shadow-sm p-4 border border-neutral-100 flex items-center gap-4 hover:shadow-md transition-all duration-200">
+      <div className="w-10 h-10 rounded-xl bg-neutral-50 flex items-center justify-center text-xl shrink-0">
+        {icon}
       </div>
       <div>
-        <p className="text-neutral-500 text-sm font-bold uppercase tracking-wider">{label}</p>
-        {trend && (
-          <p className="text-neutral-400 text-xs mt-1 font-medium">{trend}</p>
-        )}
+        <p className="text-neutral-400 text-xs font-bold uppercase tracking-wider mb-0.5 whitespace-nowrap">
+          {label}
+        </p>
+        <div className="flex items-end gap-2">
+          <span className={`text-2xl font-display font-bold ${colorClass} leading-none`}>
+            {value}
+          </span>
+          {trend && (
+            <span className="text-neutral-400 text-[10px] font-medium mb-0.5">
+              {trend}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

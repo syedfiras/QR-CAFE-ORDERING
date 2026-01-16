@@ -20,6 +20,7 @@ interface AdminOrder {
   id: string;
   status: "PENDING" | "PREPARING" | "COMPLETED" | "CANCELLED";
   created_at: string;
+  updated_at?: string;
   cafe_tables: {
     table_number: number;
   };
@@ -163,7 +164,7 @@ export default function AdminPage() {
   const historyOrders = orders.filter(o => o.status === "CANCELLED" || (o.status === "COMPLETED" && (paidOrders.has(o.id) || (o.payments && o.payments.length > 0))));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white pb-24">
+    <div className="min-h-screen bg-neutral-100/50 pb-24 font-sans">
       <ConfirmModal
         isOpen={confirmState.isOpen}
         title={confirmState.title}
@@ -179,231 +180,224 @@ export default function AdminPage() {
         onClose={() => setIsHistoryOpen(false)}
       />
 
-      {/* Header */}
-      <header className="bg-white shadow-soft sticky top-0 z-40">
+      {/* Header - Solid Color */}
+      <header className="bg-neutral-900 shadow-xl sticky top-0 z-40 text-white border-b border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary-400">
-              Bistro Yahya Admin
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Bistro Yahya <span className="text-primary-400">Admin</span>
             </h1>
             <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">
-              Live Control Panel • Daily Operations
+              Live Control Panel
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-full text-xs font-bold animate-pulse">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+            <span className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 border border-neutral-700 text-green-400 rounded-full text-xs font-bold animate-pulse">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
               LIVE
             </span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 space-y-10">
+        
+        {/* Active Orders Section - TOP PRIORITY */}
+        <section className="bg-neutral-50 rounded-[2rem] p-6 sm:p-8 shadow-sm border border-neutral-200/60">
+          <div className="flex items-center justify-between mb-8">
+             <div className="flex items-center gap-4">
+                <span className="w-12 h-12 flex items-center justify-center bg-orange-50 text-orange-500 text-2xl rounded-2xl border border-orange-100 shadow-sm">🔥</span>
+                <div>
+                   <h2 className="font-display text-2xl font-bold text-neutral-800">
+                     Active Orders
+                   </h2>
+                   <p className="text-neutral-400 text-xs font-medium">Real-time kitchen status</p>
+                </div>
+             </div>
+             <span className="bg-neutral-900 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-neutral-200">
+               {activeOrders.length} Pending
+             </span>
+          </div>
+
+          {loading ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {[...Array(3)].map((_, i) => (
+                 <SkeletonCard key={i} variant="order" />
+               ))}
+             </div>
+          ) : activeOrders.length === 0 ? (
+             <div className="bg-neutral-50/50 border-2 border-dashed border-neutral-200 rounded-[2rem] p-16 text-center">
+               <EmptyState
+                 icon="👨‍🍳"
+                 title="Kitchen is Quiet"
+                 description="Incoming orders will appear here automatically."
+               />
+             </div>
+          ) : (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {activeOrders.map((order) => (
+                 <OrderCard
+                   key={order.id}
+                   order={{
+                     ...order,
+                     total: getOrderTotal(order),
+                     isPaid: paidOrders.has(order.id) || (order.payments && order.payments.length > 0),
+                   }}
+                   onPrepare={() => handleStatusChange(order.id, "PREPARING")}
+                   onComplete={() => handleStatusChange(order.id, "COMPLETED")}
+                   onCancel={() => handleCancelOrder(order.id, order.cafe_tables.table_number)}
+                   onCancelItem={(itemId) => {
+                     const item = order.order_items.find(i => i.id === itemId);
+                     handleCancelItem(itemId, item?.menu_items.name || "item", item?.quantity || 1);
+                   }}
+                   onMarkPaid={() => handleMarkPaid(order.id)}
+                 />
+               ))}
+             </div>
+          )}
+        </section>
+
         {/* Metrics Dashboard */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-2xl font-bold text-neutral-800 flex items-center gap-2">
-              <span className="text-primary-400">📊</span> Today's Performance
-            </h2>
+        <section>
+          <div className="flex items-center gap-2 mb-4 px-2">
+            <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-widest">Daily Performance</h3>
           </div>
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-              {[...Array(6)].map((_, i) => (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
                 <SkeletonCard key={i} variant="metric" />
               ))}
             </div>
           ) : metrics ? (
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard
                 icon="📦"
-                label="Orders Today"
+                label="Total Orders"
                 value={metrics.ordersToday}
-                color="primary-300"
+                color="text-neutral-800"
               />
               <MetricCard
                 icon="💰"
                 label="Revenue"
                 value={`₹${metrics.revenueToday}`}
-                color="status-completed"
+                color="text-primary-600"
               />
               <MetricCard
                 icon="✅"
                 label="Completed"
                 value={metrics.completedToday}
-                color="status-completed"
-              />
-              <MetricCard
-                icon="💳"
-                label="Paid"
-                value={metrics.paidOrders}
-                color="primary-300"
-              />
-              <MetricCard
-                icon="⏳"
-                label="Unpaid"
-                value={metrics.unpaidOrders}
-                color="status-pending"
+                color="text-green-600"
               />
               <MetricCard
                 icon="❌"
                 label="Cancelled"
                 value={metrics.cancelledToday}
-                color="status-cancelled"
+                color="text-red-500"
               />
             </div>
           ) : null}
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Main Operations Section */}
-          <div className="lg:col-span-8 space-y-12">
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-display text-2xl font-bold text-neutral-800 flex items-center gap-3">
-                  <span className="w-8 h-8 flex items-center justify-center bg-orange-100 text-orange-500 rounded-xl text-sm">🔥</span>
-                  Active Orders
-                </h2>
-                <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                  {activeOrders.length} In Progress
-                </span>
-              </div>
-
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[...Array(2)].map((_, i) => (
-                    <SkeletonCard key={i} variant="order" />
-                  ))}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+           {/* Payments Due Section - Side Panel */}
+           <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24">
+              <section className="bg-white rounded-[2rem] p-6 border border-primary-100 shadow-lg shadow-primary-50/50 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+                    <span className="text-9xl">💰</span>
                 </div>
-              ) : activeOrders.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-pink-200 rounded-[2.5rem] p-16 text-center">
-                  <EmptyState
-                    icon="👨‍🍳"
-                    title="Kitchen is Quiet"
-                    description="Incoming orders will appear here automatically."
-                  />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {activeOrders.map((order) => (
-                    <OrderCard
-                      key={order.id}
-                      order={{
-                        ...order,
-                        total: getOrderTotal(order),
-                        isPaid: paidOrders.has(order.id) || (order.payments && order.payments.length > 0),
-                      }}
-                      onPrepare={() => handleStatusChange(order.id, "PREPARING")}
-                      onComplete={() => handleStatusChange(order.id, "COMPLETED")}
-                      onCancel={() => handleCancelOrder(order.id, order.cafe_tables.table_number)}
-                      onCancelItem={(itemId) => {
-                        const item = order.order_items.find(i => i.id === itemId);
-                        handleCancelItem(itemId, item?.menu_items.name || "item", item?.quantity || 1);
-                      }}
-                      onMarkPaid={() => handleMarkPaid(order.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-
-          {/* Side Payment Section */}
-          <div className="lg:col-span-4 lg:row-span-2 h-full">
-            <section className="bg-primary-50/70 backdrop-blur-md rounded-[2.5rem] p-8 border border-white shadow-soft sticky top-[100px]">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="font-display text-xl font-bold text-neutral-800 flex items-center gap-2">
-                    <span className="text-green-500">💰</span> Payments Due
-                  </h2>
-                  <p className="text-neutral-500 text-[10px] font-bold uppercase mt-1">Ready for Checkout</p>
-                </div>
-                <span className="bg-green-500 text-white w-8 h-8 flex items-center justify-center rounded-full text-xs font-black shadow-lg">
-                  {unpaidCompletedOrders.length}
-                </span>
-              </div>
-
-              <div className="space-y-6">
-                {loading ? (
-                  <SkeletonCard variant="order" />
-                ) : unpaidCompletedOrders.length === 0 ? (
-                  <div className="text-center py-16 bg-white/40 rounded-[2rem] border-2 border-dashed border-primary-200">
-                    <div className="text-3xl mb-3">🎐</div>
-                    <p className="text-neutral-500 text-sm font-medium">All settled up!</p>
+                
+                <div className="flex items-center justify-between mb-8 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <span className="w-10 h-10 flex items-center justify-center bg-green-50 text-green-600 rounded-xl text-xl border border-green-100">�</span>
+                    <div>
+                        <h2 className="font-display text-xl font-bold text-neutral-800">
+                        Payments
+                        </h2>
+                        <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Checkout Queue</p>
+                    </div>
                   </div>
-                ) : (
-                  unpaidCompletedOrders.map((order) => (
-                    <OrderCard
-                      key={order.id}
-                      order={{
-                        ...order,
-                        total: getOrderTotal(order),
-                        isPaid: paidOrders.has(order.id) || (order.payments && order.payments.length > 0),
-                      }}
-                      onPrepare={() => { }}
-                      onComplete={() => { }}
-                      onCancel={() => handleCancelOrder(order.id, order.cafe_tables.table_number)}
-                      onCancelItem={(itemId) => {
-                        const item = order.order_items.find(i => i.id === itemId);
-                        handleCancelItem(itemId, item?.menu_items.name || "item", item?.quantity || 1);
-                      }}
-                      onMarkPaid={() => handleMarkPaid(order.id)}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-md shadow-green-200">
+                    {unpaidCompletedOrders.length}
+                  </span>
+                </div>
 
-          <div className="lg:col-span-8">
-            <section>
-              <div className="flex items-center justify-between mb-6 opacity-60">
-                <h2 className="font-display text-xl font-bold text-neutral-800 flex items-center gap-3">
-                  <span className="w-8 h-8 flex items-center justify-center bg-neutral-100 text-neutral-500 rounded-xl text-sm">📜</span>
-                  Daily History
-                </h2>
-                <button
-                  onClick={() => setIsHistoryOpen(true)}
-                  className="text-primary-400 text-xs font-bold hover:underline"
-                >
-                  View All Data
-                </button>
-              </div>
+                <div className="space-y-4 relative z-10">
+                  {loading ? (
+                    <SkeletonCard variant="order" />
+                  ) : unpaidCompletedOrders.length === 0 ? (
+                    <div className="text-center py-12 bg-neutral-50 rounded-2xl border border-dashed border-neutral-200">
+                      <div className="text-2xl mb-2 grayscale opacity-50">✨</div>
+                      <p className="text-neutral-400 text-sm font-medium">No pending payments</p>
+                    </div>
+                  ) : (
+                    unpaidCompletedOrders.map((order) => (
+                      <OrderCard
+                        key={order.id}
+                        order={{
+                          ...order,
+                          total: getOrderTotal(order),
+                          isPaid: paidOrders.has(order.id) || (order.payments && order.payments.length > 0),
+                        }}
+                        onPrepare={() => { }}
+                        onComplete={() => { }}
+                        onCancel={() => handleCancelOrder(order.id, order.cafe_tables.table_number)}
+                        onCancelItem={(itemId) => {
+                          const item = order.order_items.find(i => i.id === itemId);
+                          handleCancelItem(itemId, item?.menu_items.name || "item", item?.quantity || 1);
+                        }}
+                        onMarkPaid={() => handleMarkPaid(order.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              </section>
+           </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75 grayscale-[0.5]">
-                {historyOrders.slice(0, 4).map((order) => (
-                  <OrderCard
-                    key={order.id}
-                    order={{
-                      ...order,
-                      total: getOrderTotal(order),
-                      isPaid: paidOrders.has(order.id) || (order.payments && order.payments.length > 0),
-                    }}
-                    onPrepare={() => { }}
-                    onComplete={() => { }}
-                    onCancel={() => { }}
-                    onCancelItem={() => { }}
-                    onMarkPaid={() => { }}
-                  />
-                ))}
-                {historyOrders.length === 0 && (
-                  <div className="col-span-full py-12 text-center text-neutral-400 border border-dashed border-neutral-200 rounded-3xl">
-                    <p className="text-sm">No historical data for today yet</p>
+           {/* Daily History Section */}
+           <div className="lg:col-span-7 xl:col-span-8">
+              <section className="bg-neutral-50 rounded-[2rem] p-6 sm:p-8 border border-neutral-200">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                     <span className="w-10 h-10 flex items-center justify-center bg-white border border-neutral-200 text-neutral-400 rounded-xl text-lg">📜</span>
+                     <h2 className="font-display text-xl font-bold text-neutral-800">
+                        Recent History
+                     </h2>
                   </div>
-                )}
-                {historyOrders.length > 4 && (
                   <button
                     onClick={() => setIsHistoryOpen(true)}
-                    className="col-span-full py-4 bg-white border border-neutral-100 rounded-2xl text-neutral-500 font-bold hover:bg-primary-50 transition-colors"
+                    className="group flex items-center gap-1 text-neutral-500 hover:text-primary-600 text-sm font-bold transition-colors px-4 py-2 bg-white rounded-lg border border-neutral-200 hover:border-primary-200"
                   >
-                    Show More History (+{historyOrders.length - 4})
+                    View All
+                    <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                   </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {historyOrders.slice(0, 4).map((order) => (
+                    <div key={order.id} className="opacity-75 hover:opacity-100 transition-opacity">
+                        <OrderCard
+                        order={{
+                            ...order,
+                            total: getOrderTotal(order),
+                            isPaid: paidOrders.has(order.id) || (order.payments && order.payments.length > 0),
+                        }}
+                        onPrepare={() => { }}
+                        onComplete={() => { }}
+                        onCancel={() => { }}
+                        onCancelItem={() => { }}
+                        onMarkPaid={() => { }}
+                        />
+                    </div>
+                  ))}
+                </div>
+                
+                {historyOrders.length === 0 && (
+                    <div className="py-12 text-center text-neutral-400 border border-dashed border-neutral-200 rounded-3xl bg-neutral-100/50">
+                      <p className="text-sm">No history for today</p>
+                    </div>
                 )}
-              </div>
-            </section>
-          </div>
-
-
+              </section>
+           </div>
         </div>
       </main>
     </div>

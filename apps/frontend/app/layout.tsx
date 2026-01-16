@@ -8,12 +8,7 @@ const inter = Inter({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
+
 
 export const metadata: Metadata = {
   title: "Bistro Yahya - Order Menu",
@@ -37,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${playfair.variable} font-sans antialiased`}
+        className={`${inter.variable} font-sans antialiased text-neutral-900 bg-neutral-50`}
       >
         {children}
       </body>

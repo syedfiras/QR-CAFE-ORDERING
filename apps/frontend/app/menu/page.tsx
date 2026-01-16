@@ -119,36 +119,57 @@ export default function MenuPage() {
     0
   );
 
+  const [showCafeName, setShowCafeName] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      {/* Hero Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-neutral-100">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-xl">
-                🌸
-              </div>
-              <div>
-                <h1 className="font-display text-xl sm:text-2xl font-bold text-pink-300 leading-none">
-                  Bistro Yahya
-                </h1>
-                <p className="text-pink-500 text-xs font-medium tracking-wide mt-0.5">TABLE {table}</p>
-              </div>
+    <div className="min-h-screen bg-neutral-50">
+      {/* Hero Header - Redesigned */}
+      <header className="bg-neutral-900 sticky top-0 z-40 border-b border-neutral-800 shadow-xl text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Hamburger menu icon */}
+            <div className="w-10 h-10 flex items-center justify-center">
+              <button
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-800 hover:bg-neutral-700 transition"
+                onClick={() => setShowCafeName((prev) => !prev)}
+                aria-label="Open menu"
+              >
+                {/* Hamburger SVG */}
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-white">
+                  <line x1="4" y1="7" x2="20" y2="7" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <line x1="4" y1="17" x2="20" y2="17" />
+                </svg>
+              </button>
+              {/* Dropdown/modal for cafe name */}
+              {showCafeName && (
+                <div className="absolute left-4 top-16 bg-white text-neutral-900 rounded-xl shadow-lg px-6 py-3 z-50 border border-neutral-200 min-w-45 animate-fade-in">
+                  <span className="font-bold text-lg">Bistro Yahya</span>
+                </div>
+              )}
             </div>
-            {addingToExisting && (
-              <div className="bg-primary-50 text-primary-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border border-primary-100 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-                Adding to Order
-              </div>
-            )}
+            {/* Title and table number */}
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-white leading-none tracking-tight">Menu</h1>
+              <p className="text-neutral-400 text-xs font-medium tracking-wide mt-0.5 uppercase">Table {table}</p>
+            </div>
           </div>
+          {/* Back to order button if addingToExisting */}
+          {addingToExisting && (
+            <button
+              className="bg-primary-50 text-primary-600 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border border-primary-200 flex items-center gap-2 hover:bg-primary-100 transition"
+              onClick={() => router.push(`/order?table=${table}`)}
+            >
+              <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+              Back to Order
+            </button>
+          )}
         </div>
       </header>
 
       {/* Search and Categories Sticky Header */}
       {!loading && menu.length > 0 && (
-        <div className="sticky top-[73px] z-30 bg-[#FAFAFA]/95 backdrop-blur-sm pb-4 pt-2 px-4 sm:px-6 border-b border-neutral-100/50 transition-all duration-200">
+        <div className="sticky top-18.25 z-30 bg-neutral-50/95 backdrop-blur-md pb-4 pt-3 px-4 sm:px-6 border-b border-neutral-200/50 transition-all duration-200">
           <div className="max-w-7xl mx-auto space-y-4">
             {/* Search and Filter Row */}
             <div className="flex gap-3">
@@ -160,27 +181,22 @@ export default function MenuPage() {
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-neutral-200 rounded-xl leading-5 bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 sm:text-sm transition-all shadow-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-neutral-300 rounded-xl leading-5 bg-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 sm:text-sm transition-all shadow-sm text-neutral-900"
                   placeholder="Search for food..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <button className="flex items-center justify-center px-4 py-2.5 border border-neutral-200 rounded-xl bg-white text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors shadow-sm">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-              </button>
             </div>
 
-            {/* Categories Row */}
+            {/* Categories Row - Clean Tabs */}
             <div className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
               <div className="flex gap-2">
                 <button
                   onClick={() => setActiveCategory('all')}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeCategory === 'all'
-                    ? 'bg-pink-500 text-white shadow-md shadow-pink-500/20'
-                    : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
+                  className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border ${activeCategory === 'all'
+                    ? 'bg-neutral-900 text-white border-neutral-900 shadow-md'
+                    : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100 hover:text-neutral-900'
                     }`}
                 >
                   All
@@ -189,9 +205,9 @@ export default function MenuPage() {
                   <button
                     key={category.id}
                     onClick={() => setActiveCategory(category.id)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeCategory === category.id
-                      ? 'bg-pink-500 text-white shadow-md shadow-pink-500/20'
-                      : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-50'
+                    className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border ${activeCategory === category.id
+                      ? 'bg-neutral-900 text-white border-neutral-900 shadow-md'
+                      : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-100 hover:text-neutral-900'
                       }`}
                   >
                     {category.name}
@@ -205,17 +221,6 @@ export default function MenuPage() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 pb-40">
-
-        {/* Welcome Section - Only show when not searching */}
-        {!loading && menu.length > 0 && !searchQuery && activeCategory === 'all' && (
-          <div className="mb-8 mt-2">
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-pink-300 mb-2">
-              Menu
-            </h2>
-            <p className="text-pink-500 text-lg">Delicious food, made with love.</p>
-          </div>
-        )}
-
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
             {[...Array(8)].map((_, i) => (
@@ -247,7 +252,7 @@ export default function MenuPage() {
               .map((category) => (
                 <div key={category.id}>
                   <div className="flex items-center gap-4 mb-6">
-                    <h3 className="font-display text-2xl font-bold text-pink-500 flex-shrink-0">
+                    <h3 className="text-xl font-bold text-neutral-900 shrink-0 tracking-tight">
                       {category.name}
                     </h3>
                     <div className="h-px bg-neutral-200 w-full rounded-full" />
@@ -255,7 +260,7 @@ export default function MenuPage() {
 
                   <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
                     {category.menu_items.map((item) => (
-                      <div key={item.id} className="flex-shrink-0 w-[280px]">
+                      <div key={item.id} className="shrink-0 w-70">
                         <ItemCard
                           item={item}
                           onClick={() => setSelectedItem(item)}
@@ -310,7 +315,7 @@ export default function MenuPage() {
               size="lg"
               onClick={handlePlaceOrder}
               loading={placing}
-              className="flex-shrink-0"
+              className="shrink-0"
             >
               Place Order
             </Button>

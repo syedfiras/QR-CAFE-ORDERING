@@ -9,19 +9,19 @@ export default function StatusBadge({ status, size = "md" }: StatusBadgeProps) {
   const statusConfig = {
     PENDING: {
       label: "Pending",
-      color: "bg-status-pending text-yellow-900",
+      color: "bg-status-pending text-white", // Amber/Yellow
     },
     PREPARING: {
       label: "Preparing",
-      color: "bg-status-preparing text-orange-900",
+      color: "bg-status-preparing text-white", // Blue
     },
     COMPLETED: {
       label: "Completed",
-      color: "bg-status-completed text-green-900",
+      color: "bg-status-completed text-white", // Green
     },
     CANCELLED: {
       label: "Cancelled",
-      color: "bg-status-cancelled text-red-900",
+      color: "bg-status-cancelled text-white", // Red
     },
   };
 

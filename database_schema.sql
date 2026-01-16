@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS categories (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Menu items table
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   image_url TEXT,
   description TEXT,
   is_available BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Cafe tables table
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS cafe_tables (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_number INTEGER NOT NULL UNIQUE,
   is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Orders table
@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   table_id UUID REFERENCES cafe_tables(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PREPARING', 'COMPLETED', 'CANCELLED')),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Order items table
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   menu_item_id UUID REFERENCES menu_items(id) ON DELETE CASCADE,
   quantity INTEGER NOT NULL,
   is_cancelled BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Payments table
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS payments (
   method TEXT NOT NULL DEFAULT 'COUNTER',
   status TEXT NOT NULL DEFAULT 'PAID' CHECK (status IN ('PAID', 'PENDING', 'FAILED')),
   amount DECIMAL(10,2),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Indexes for better performance
@@ -95,7 +95,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
   ((SELECT id FROM categories WHERE name = 'Freakshakes'), 'Fruity Nut Riot', 190, 'Fruity shake with nutty crunch', '/images/freakshakes/fruity-nut-riot.jpg')
 
   -- Iced & Frappes
-  ((SELECT id FROM categories WHERE name = 'Iced & Frappes'), 'Classic Cold Coffee', 70, 'Chilled classic cold coffee', '/images/iced-frappes/classic-cold-coffee.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Iced & Frappes'), 'Classic Cold Coffee', 70, 'Chilled classic cold coffee', '/images/iced-frappes/classic-cold-coffee.jpg'),
   ((SELECT id FROM categories WHERE name = 'Iced & Frappes'), 'Chocolate Coffee', 80, 'Cold coffee blended with chocolate', '/images/iced-frappes/chocolate-coffee.jpg'),
   ((SELECT id FROM categories WHERE name = 'Iced & Frappes'), 'Irish Frappe', 100, 'Creamy Irish-style frappe', '/images/iced-frappes/irish-frappe.jpg'),
   ((SELECT id FROM categories WHERE name = 'Iced & Frappes'), 'Nutella Latte', 100, 'Nutella infused iced latte', '/images/iced-frappes/nutella-latte.jpg'),
@@ -103,7 +103,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
   ((SELECT id FROM categories WHERE name = 'Iced & Frappes'), 'Bistro Signature Frappe', 120, 'House special signature frappe', '/images/iced-frappes/bistro-signature-frappe.jpg')
 
  -- Lemonade
-  ((SELECT id FROM categories WHERE name = 'Lemonade'), 'Ginger Zing', 60, 'Refreshing lemon drink with ginger kick', '/images/lemonade/ginger-zing.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Lemonade'), 'Ginger Zing', 60, 'Refreshing lemon drink with ginger kick', '/images/lemonade/ginger-zing.jpg'),
   ((SELECT id FROM categories WHERE name = 'Lemonade'), 'Ocean Lemon', 60, 'Cool blue lemon refresher', '/images/lemonade/ocean-lemon.jpg'),
   ((SELECT id FROM categories WHERE name = 'Lemonade'), 'Greenapple Glow', 60, 'Green apple flavored lemonade', '/images/lemonade/greenapple-glow.jpg'),
   ((SELECT id FROM categories WHERE name = 'Lemonade'), 'Violet Spark / Pink Punch', 60, 'Floral violet or pink fruit punch lemonade', '/images/lemonade/violet-spark-pink-punch.jpg'),
@@ -115,7 +115,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
   ((SELECT id FROM categories WHERE name = 'Lemonade'), 'Caribbean Cooler', 60, 'Tropical style chilled lemonade', '/images/lemonade/caribbean-cooler.jpg')
 
 -- Slushy
-  ((SELECT id FROM categories WHERE name = 'Slushy'), 'Ocean Mist', 90, 'Cool ocean-flavored slushy', '/images/slushy/ocean-mist.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Slushy'), 'Ocean Mist', 90, 'Cool ocean-flavored slushy', '/images/slushy/ocean-mist.jpg'),
   ((SELECT id FROM categories WHERE name = 'Slushy'), 'Green Apple Chill', 90, 'Icy green apple slushy', '/images/slushy/green-apple-chill.jpg'),
   ((SELECT id FROM categories WHERE name = 'Slushy'), 'Mint Mojito Frost', 80, 'Minty mojito-style frozen drink', '/images/slushy/mint-mojito-frost.jpg'),
   ((SELECT id FROM categories WHERE name = 'Slushy'), 'Blueberry Burst', 90, 'Frozen blueberry flavored slushy', '/images/slushy/blueberry-burst.jpg'),
@@ -128,7 +128,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
 
  -- Milkshakes (M & XL)
 
-  ((SELECT id FROM categories WHERE name = 'Milkshakes'), 'Oreo Overload (M)', 60, 'Oreo milkshake - medium', '/images/milkshakes/oreo-overload-m.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Milkshakes'), 'Oreo Overload (M)', 60, 'Oreo milkshake - medium', '/images/milkshakes/oreo-overload-m.jpg'),
   ((SELECT id FROM categories WHERE name = 'Milkshakes'), 'Oreo Overload (XL)', 110, 'Oreo milkshake - extra large', '/images/milkshakes/oreo-overload-xl.jpg'),
 
   ((SELECT id FROM categories WHERE name = 'Milkshakes'), 'Shamam Smoothie (M)', 60, 'Fruit smoothie - medium', '/images/milkshakes/shamam-smoothie-m.jpg'),
@@ -178,7 +178,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
 
 
 -- Starters
-  ((SELECT id FROM categories WHERE name = 'Starters'), 'Crunchy Chicken Bites', 140, 'Crispy bite-sized chicken starters', '/images/starters/crunchy-chicken-bites.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Starters'), 'Crunchy Chicken Bites', 140, 'Crispy bite-sized chicken starters', '/images/starters/crunchy-chicken-bites.jpg'),
   ((SELECT id FROM categories WHERE name = 'Starters'), 'Pop’n’Roll Chicken', 160, 'Rolled crispy chicken snacks', '/images/starters/popnroll-chicken.jpg'),
   ((SELECT id FROM categories WHERE name = 'Starters'), 'Golden Crispy Tenders', 180, 'Golden fried chicken tenders', '/images/starters/golden-crispy-tenders.jpg'),
 
@@ -198,7 +198,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
   ((SELECT id FROM categories WHERE name = 'Wraps'), 'Chicken Peri Peri', 100, 'Peri peri spiced chicken wrap', '/images/wraps/chicken-peri-peri.jpg')
 
  -- Burgers
-  ((SELECT id FROM categories WHERE name = 'Burgers'), 'Broasted Crunch Burger', 80, 'Crispy broasted chicken burger', '/images/burgers/broasted-crunch-burger.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Burgers'), 'Broasted Crunch Burger', 80, 'Crispy broasted chicken burger', '/images/burgers/broasted-crunch-burger.jpg'),
   ((SELECT id FROM categories WHERE name = 'Burgers'), 'Chicken Tikka Heat Burger', 80, 'Spicy chicken tikka burger', '/images/burgers/chicken-tikka-heat-burger.jpg'),
   ((SELECT id FROM categories WHERE name = 'Burgers'), 'Butter Chicken Broasted', 100, 'Butter chicken style broasted burger', '/images/burgers/butter-chicken-broasted.jpg'),
   ((SELECT id FROM categories WHERE name = 'Burgers'), 'Double Strip Stack', 100, 'Double chicken strip stacked burger', '/images/burgers/double-strip-stack.jpg'),
@@ -224,7 +224,7 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
   ((SELECT id FROM categories WHERE name = 'Neapolitan Style Pizza'), 'The All-Star Chicken (12")', 450, 'Signature all-star chicken pizza 12 inch', '/images/pizza/all-star-chicken-12.jpg')
 
   -- Pasta
-  ((SELECT id FROM categories WHERE name = 'Pasta'), 'BY Special Angry Bird Pasta', 200, 'Signature spicy angry bird style pasta', '/images/pasta/by-special-angry-bird-pasta.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Pasta'), 'BY Special Angry Bird Pasta', 200, 'Signature spicy angry bird style pasta', '/images/pasta/by-special-angry-bird-pasta.jpg'),
   ((SELECT id FROM categories WHERE name = 'Pasta'), 'Creamy Alfredo Bliss', 200, 'Rich and creamy alfredo pasta', '/images/pasta/creamy-alfredo-bliss.jpg'),
 
   -- Fruit Refreshers
@@ -236,14 +236,13 @@ INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
   ((SELECT id FROM categories WHERE name = 'Fruit Refreshers'), 'Fruity Fusion', 70, 'Mixed fruit refresher blend', '/images/fruit-refreshers/fruity-fusion.jpg')
 
 -- Creamy Bliss
- ((SELECT id FROM categories WHERE name = 'Creamy Bliss'), 'Nutella Cream Bliss', 220, 'Rich nutella creamy dessert', '/images/creamy-bliss/nutella-cream-bliss.jpg'),
+ ,((SELECT id FROM categories WHERE name = 'Creamy Bliss'), 'Nutella Cream Bliss', 220, 'Rich nutella creamy dessert', '/images/creamy-bliss/nutella-cream-bliss.jpg'),
   ((SELECT id FROM categories WHERE name = 'Creamy Bliss'), 'KitKat Crush Cream', 220, 'KitKat infused creamy dessert', '/images/creamy-bliss/kitkat-crush-cream.jpg'),
   ((SELECT id FROM categories WHERE name = 'Creamy Bliss'), 'Mango Velvet Cream', 220, 'Smooth mango cream dessert', '/images/creamy-bliss/mango-velvet-cream.jpg'),
   ((SELECT id FROM categories WHERE name = 'Creamy Bliss'), 'Biscoff Cream Burst', 220, 'Creamy biscoff flavored dessert', '/images/creamy-bliss/biscoff-cream-burst.jpg')
 
 -- Popping Boba
-INSERT INTO menu_items (category_id, name, price, description, image_url) VALUES
-  ((SELECT id FROM categories WHERE name = 'Popping Boba'), 'Cocoa Burst', 120, 'Chocolate popping boba drink', '/images/popping-boba/cocoa-burst.jpg'),
+  ,((SELECT id FROM categories WHERE name = 'Popping Boba'), 'Cocoa Burst', 120, 'Chocolate popping boba drink', '/images/popping-boba/cocoa-burst.jpg'),
   ((SELECT id FROM categories WHERE name = 'Popping Boba'), 'Starberry Blush', 120, 'Strawberry popping boba drink', '/images/popping-boba/starberry-blush.jpg'),
   ((SELECT id FROM categories WHERE name = 'Popping Boba'), 'Sunshine Mango', 120, 'Mango popping boba drink', '/images/popping-boba/sunshine-mango.jpg'),
   ((SELECT id FROM categories WHERE name = 'Popping Boba'), 'Coffee Espresso Pop', 120, 'Coffee espresso popping boba', '/images/popping-boba/coffee-espresso-pop.jpg'),
