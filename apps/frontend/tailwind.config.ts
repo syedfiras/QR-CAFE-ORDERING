@@ -8,52 +8,52 @@ const config: Config = {
   ],
   theme: {
     extend: {
-    // Bistro Yahya - Dusty Rose & Cream palette
-    colors: {
-      primary: {
-        50: "#FFF0ED",
-        100: "#FFE4E0",
-        200: "#FFC9C1",
-        300: "#FF9D8F",
-        400: "#E8856F",
-        500: "#8B4367", // Main burgundy
-        600: "#6F3554",
-        700: "#5A2A43",
-        800: "#3D1C2E",
-        900: "#2A1220",
+      // Bistro Yahya - Dusty Rose & Cream palette
+      colors: {
+        primary: {
+          50: "#ffe9eb",
+          100: "#ffe9eb",
+          200: "#fcd9dc",
+          300: "#fcd9dc",
+          400: "#f5c1c5",
+          500: "#efb0b7", // Main pink
+          600: "#efb0b7",
+          700: "#db7c87",
+          800: "#db7c87",
+          900: "#db7c87",
+        },
+        cream: {
+          50: "#FFFBF7",
+          100: "#FFF5ED",
+          200: "#FFE8D6",
+          300: "#FFD7BA",
+          400: "#FFC89E",
+          500: "#F5DCC8",
+        },
+        wine: {
+          500: "#9B2C2C",
+          600: "#7A2424",
+          700: "#5C1C1C",
+        },
+        neutral: {
+          50: "#FAFAF9",
+          100: "#F5F5F4",
+          200: "#E7E5E4",
+          300: "#D6D3D1",
+          400: "#A8A29E",
+          500: "#78716C",
+          600: "#57534E",
+          700: "#44403C",
+          800: "#292524",
+          900: "#1C1917",
+        },
+        status: {
+          pending: "#F59E0B",
+          preparing: "#8B5CF6",
+          completed: "#10B981",
+          cancelled: "#EF4444",
+        },
       },
-      cream: {
-        50: "#FFFBF7",
-        100: "#FFF5ED",
-        200: "#FFE8D6",
-        300: "#FFD7BA",
-        400: "#FFC89E",
-        500: "#F5DCC8",
-      },
-      wine: {
-        500: "#9B2C2C",
-        600: "#7A2424",
-        700: "#5C1C1C",
-      },
-      neutral: {
-        50: "#FAFAF9",
-        100: "#F5F5F4",
-        200: "#E7E5E4",
-        300: "#D6D3D1",
-        400: "#A8A29E",
-        500: "#78716C",
-        600: "#57534E",
-        700: "#44403C",
-        800: "#292524",
-        900: "#1C1917",
-      },
-      status: {
-        pending: "#F59E0B",
-        preparing: "#8B5CF6",
-        completed: "#10B981",
-        cancelled: "#EF4444",
-      },
-    },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
       },

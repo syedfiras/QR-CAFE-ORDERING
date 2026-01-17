@@ -2,132 +2,143 @@
 
 /* Tailwind v4 Theme Configuration */
 @theme {
-  /* Brand Colors - Rich Bistro Yahya Palette */
-  --color-primary-50: #FFF0ED;
-  --color-primary-100: #FFE4E0;
-  --color-primary-200: #FFC9C1;
-  --color-primary-300: #FF9D8F;
-  --color-primary-400: #E8856F;
-  --color-primary-500: #8B4367; /* Main burgundy */
-  --color-primary-600: #6F3554;
-  --color-primary-700: #5A2A43;
-  --color-primary-800: #3D1C2E;
-  --color-primary-900: #2A1220;
+    /* Brand Colors - Classy Pink Palette */
+    --color-primary-50: #ffe9eb;
+    --color-primary-100: #ffe9eb;
+    --color-primary-200: #fcd9dc;
+    --color-primary-300: #fcd9dc;
+    --color-primary-400: #f5c1c5;
+    --color-primary-500: #efb0b7;
+    /* Main pink */
+    --color-primary-600: #efb0b7;
+    --color-primary-700: #db7c87;
+    --color-primary-800: #db7c87;
+    --color-primary-900: #db7c87;
 
-  /* Warm backgrounds */
-  --color-cream-50: #FFFBF7;
-  --color-cream-100: #FFF5ED;
-  --color-cream-200: #FFE8D6;
-  --color-cream-300: #FFD7BA;
-  --color-cream-400: #FFC89E;
-  --color-cream-500: #F5DCC8;
+    /* Warm backgrounds */
+    --color-cream-50: #FFFBF7;
+    --color-cream-100: #FFF5ED;
+    --color-cream-200: #FFE8D6;
+    --color-cream-300: #FFD7BA;
+    --color-cream-400: #FFC89E;
+    --color-cream-500: #F5DCC8;
 
-  /* Deep red accent (booth color) */
-  --color-wine-500: #9B2C2C;
-  --color-wine-600: #7A2424;
-  --color-wine-700: #5C1C1C;
+    /* Deep red accent (booth color) */
+    --color-wine-500: #9B2C2C;
+    --color-wine-600: #7A2424;
+    --color-wine-700: #5C1C1C;
 
-  /* Neutral (warm gray) */
-  --color-neutral-50: #FAFAF9;
-  --color-neutral-100: #F5F5F4;
-  --color-neutral-200: #E7E5E4;
-  --color-neutral-300: #D6D3D1;
-  --color-neutral-400: #A8A29E;
-  --color-neutral-500: #78716C;
-  --color-neutral-600: #57534E;
-  --color-neutral-700: #44403C;
-  --color-neutral-800: #292524;
-  --color-neutral-900: #1C1917;
+    /* Neutral (warm gray) */
+    --color-neutral-50: #FAFAF9;
+    --color-neutral-100: #F5F5F4;
+    --color-neutral-200: #E7E5E4;
+    --color-neutral-300: #D6D3D1;
+    --color-neutral-400: #A8A29E;
+    --color-neutral-500: #78716C;
+    --color-neutral-600: #57534E;
+    --color-neutral-700: #44403C;
+    --color-neutral-800: #292524;
+    --color-neutral-900: #1C1917;
 
-  /* Status Colors */
-  --color-status-pending: #F59E0B;
-  --color-status-preparing: #8B5CF6;
-  --color-status-completed: #10B981;
-  --color-status-cancelled: #EF4444;
+    /* Status Colors */
+    --color-status-pending: #F59E0B;
+    --color-status-preparing: #8B5CF6;
+    --color-status-completed: #10B981;
+    --color-status-cancelled: #EF4444;
 
-  /* Shadows */
-  --shadow-soft: 0 2px 8px 0 rgb(0 0 0 / 0.08);
-  --shadow-soft-lg: 0 4px 12px 0 rgb(0 0 0 / 0.12);
-  --shadow-soft-xl: 0 8px 24px 0 rgb(0 0 0 / 0.15);
-  --shadow-elegant: 0 4px 20px 0 rgb(139 67 103 / 0.25);
+    /* Shadows */
+    --shadow-soft: 0 2px 8px 0 rgb(0 0 0 / 0.08);
+    --shadow-soft-lg: 0 4px 12px 0 rgb(0 0 0 / 0.12);
+    --shadow-soft-xl: 0 8px 24px 0 rgb(0 0 0 / 0.15);
+    --shadow-elegant: 0 4px 20px 0 rgb(139 67 103 / 0.25);
 
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  
-  --animate-fade-in: fadeIn 0.3s ease-out;
-  --animate-slide-up: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-scale-in: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    --font-sans: var(--font-inter), system-ui, sans-serif;
+
+    --animate-fade-in: fadeIn 0.3s ease-out;
+    --animate-slide-up: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --animate-scale-in: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Keyframes */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(24px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+    from {
+        transform: translateY(24px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes scaleIn {
-  from {
-    transform: scale(0.92);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+    from {
+        transform: scale(0.92);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Base Styles */
 body {
-  background: linear-gradient(135deg, #FAFAF9 0%, #F5F5F4 100%);
-  color: var(--color-neutral-900);
-  font-family: var(--font-sans);
+    background: linear-gradient(135deg, #FAFAF9 0%, #F5F5F4 100%);
+    color: var(--color-neutral-900);
+    font-family: var(--font-sans);
 }
 
 * {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 button {
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-a, button, input, textarea {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+a,
+button,
+input,
+textarea {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-neutral-100);
-  border-radius: 100px;
+    background: var(--color-neutral-100);
+    border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary-300);
-  border-radius: 100px;
+    background: var(--color-primary-300);
+    border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-400);
+    background: var(--color-primary-400);
 }

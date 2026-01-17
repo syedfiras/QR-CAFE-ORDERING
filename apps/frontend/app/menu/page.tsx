@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { getMenu, createOrder, getActiveOrder } from "../services/api";
 import ItemCard from "../components/ItemCard";
 import ItemModal from "../components/ItemModal";
@@ -141,7 +142,7 @@ export default function MenuPage() {
     0
   );
 
-   const filteredMenu = menu
+  const filteredMenu = menu
     .map((category) => ({
       ...category,
       menu_items: category.menu_items.filter(
@@ -160,87 +161,90 @@ export default function MenuPage() {
   const [showCafeName, setShowCafeName] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-    return (
-    <div className="min-h-screen" style={{background: '#FFF5ED'}}>
-    {/* Elegant Header */}
-    <header className="sticky top-0 z-40 shadow-soft-xl" style={{background: '#8B4367'}}>
-      <div className="max-w-7xl mx-auto px-5 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo and Table Info */}
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/95 flex items-center justify-center shadow-soft">
-              <span className="text-2xl">🍽️</span>
+  return (
+    <div className="min-h-screen bg-primary-50">
+      {/* Elegant Header */}
+      <header className="sticky top-0 z-40 shadow-soft-xl bg-primary-700">
+        <div className="max-w-7xl mx-auto px-5 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo and Table Info */}
+            <div className="flex items-center gap-4">
+              <div className="relative w-12 h-12 rounded-2xl bg-white/95 flex items-center justify-center shadow-soft overflow-hidden">
+                <Image
+                  src="/images/Bistro Yahya.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain p-1"
+                />
+              </div>
+
+              <div>
+                <h1 className="text-xl font-bold text-white tracking-tight">Bistro Yahya</h1>
+                <p className="text-primary-200 text-xs font-semibold tracking-wide uppercase">Table {table}</p>
+              </div>
             </div>
-            
-            <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">Bistro Yahya</h1>
-              <p className="text-primary-200 text-xs font-semibold tracking-wide uppercase">Table {table}</p>
+
+            {/* Active Order Badge */}
+            {addingToExisting && (
+              <button
+                className="flex items-center gap-2 bg-white text-primary-600 px-4 py-2 rounded-full text-sm font-bold shadow-soft active:scale-95 transition-transform"
+                onClick={() => router.push(`/order?table=${table}`)}
+              >
+                <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
+                Active Order
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Search & Filter Section */}
+      {!loading && menu.length > 0 && (
+        <div className="sticky top-[73px] z-30 bg-white/95 backdrop-blur-xl border-b border-neutral-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-5 py-4 space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-neutral-200 rounded-2xl bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
+                placeholder="Search delicious food..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex overflow-x-auto gap-2 pb-2 -mx-5 px-5 [&::-webkit-scrollbar]:hidden">
+              <button
+                onClick={() => setActiveCategory('all')}
+                className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${activeCategory === 'all'
+                  ? 'text-white shadow-soft-lg bg-primary-700'
+                  : 'bg-white text-neutral-600 border-2 border-neutral-200 active:bg-neutral-50'
+                  }`}
+              >
+                All Items
+              </button>
+              {menu.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${activeCategory === category.id
+                    ? 'text-white shadow-soft-lg bg-primary-700'
+                    : 'bg-white text-neutral-600 border-2 border-neutral-200 active:bg-neutral-50'
+                    }`}
+                >
+                  {category.name}
+                </button>
+              ))}
             </div>
           </div>
-
-          {/* Active Order Badge */}
-          {addingToExisting && (
-            <button
-              className="flex items-center gap-2 bg-white text-primary-600 px-4 py-2 rounded-full text-sm font-bold shadow-soft active:scale-95 transition-transform"
-              onClick={() => router.push(`/order?table=${table}`)}
-            >
-              <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse" />
-              Active Order
-            </button>
-          )}
         </div>
-      </div>
-    </header>
-
-{/* Search & Filter Section */}
-{!loading && menu.length > 0 && (
-  <div className="sticky top-[73px] z-30 bg-white/95 backdrop-blur-xl border-b border-neutral-200 shadow-sm">
-    <div className="max-w-7xl mx-auto px-5 py-4 space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg className="h-5 w-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        <input
-          type="text"
-          className="w-full pl-12 pr-4 py-3.5 border-2 border-neutral-200 rounded-2xl bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
-          placeholder="Search delicious food..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
-      {/* Category Pills */}
-      <div className="flex overflow-x-auto gap-2 pb-2 -mx-5 px-5 [&::-webkit-scrollbar]:hidden">
-        <button
-          onClick={() => setActiveCategory('all')}
-          className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${activeCategory === 'all'
-            ? 'text-white shadow-soft-lg'
-            : 'bg-white text-neutral-600 border-2 border-neutral-200 active:bg-neutral-50'
-            }`}
-          style={activeCategory === 'all' ? {background: '#8B4367'} : {}}
-        >
-          All Items
-        </button>
-        {menu.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setActiveCategory(category.id)}
-            className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all active:scale-95 ${activeCategory === category.id
-              ? 'text-white shadow-soft-lg'
-              : 'bg-white text-neutral-600 border-2 border-neutral-200 active:bg-neutral-50'
-              }`}
-            style={activeCategory === category.id ? {background: '#8B4367'} : {}}
-          >
-            {category.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-5 py-8 pb-40">
@@ -305,112 +309,110 @@ export default function MenuPage() {
         )}
       </main>
 
-{/* Floating Cart */}
-{cart.length > 0 && (
-  <div className="fixed bottom-4 left-4 right-4 z-40 animate-slide-up">
-    <div
-      className="max-w-7xl mx-auto rounded-3xl shadow-elegant p-5 border-2"
-      style={{ background: "#8B4367", borderColor: "#6F3554" }}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex-1 text-white">
-          <p className="font-bold text-lg">
-            {totalItems} item{totalItems !== 1 ? "s" : ""} added
-          </p>
-          {/* <p className="text-sm text-primary-100/90">
+      {/* Floating Cart */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-4 left-4 right-4 z-40 animate-slide-up">
+          <div
+            className="max-w-7xl mx-auto rounded-3xl shadow-elegant p-5 border-2 bg-primary-700 border-primary-800"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 text-white">
+                <p className="font-bold text-lg">
+                  {totalItems} item{totalItems !== 1 ? "s" : ""} added
+                </p>
+                {/* <p className="text-sm text-primary-100/90">
             Tap to review or edit your order
           </p> */}
-        </div>
-        <button
-          type="button"
-          onClick={() => setIsCartOpen((open) => !open)}
-          className="w-9 h-9 rounded-2xl bg-white/10 border border-white/30 flex items-center justify-center text-white shadow-soft active:scale-95 transition-transform"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${
-              isCartOpen ? "rotate-180" : ""
-            }`}
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M5 12L10 7L15 12"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {isCartOpen && (
-        <div className="mt-4 max-h-60 overflow-y-auto pr-1 space-y-3">
-          {cart.map((cartItem) => (
-            <div
-              key={cartItem.item.id}
-              className="flex items-center justify-between gap-3 rounded-2xl bg-black/10 px-4 py-3"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">
-                  {cartItem.item.name}
-                </p>
-                <p className="text-xs text-primary-100 mt-0.5">
-                  ₹{cartItem.item.price} × {cartItem.quantity}
-                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleDecrement(cartItem.item.id)}
-                  className="w-8 h-8 rounded-xl bg-white text-primary-600 flex items-center justify-center text-lg font-bold shadow-soft active:scale-95 transition-transform"
+              <button
+                type="button"
+                onClick={() => setIsCartOpen((open) => !open)}
+                className="w-9 h-9 rounded-2xl bg-white/10 border border-white/30 flex items-center justify-center text-white shadow-soft active:scale-95 transition-transform"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${isCartOpen ? "rotate-180" : ""
+                    }`}
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  -
-                </button>
-                <span className="min-w-[2ch] text-center text-sm font-bold text-white">
-                  {cartItem.quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleIncrement(cartItem.item.id)}
-                  className="w-8 h-8 rounded-xl bg-white text-primary-600 flex items-center justify-center text-lg font-bold shadow-soft active:scale-95 transition-transform"
-                >
-                  +
-                </button>
-                {/* <button
+                  <path
+                    d="M5 12L10 7L15 12"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {isCartOpen && (
+              <div className="mt-4 max-h-60 overflow-y-auto pr-1 space-y-3">
+                {cart.map((cartItem) => (
+                  <div
+                    key={cartItem.item.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-black/10 px-4 py-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">
+                        {cartItem.item.name}
+                      </p>
+                      <p className="text-xs text-primary-100 mt-0.5">
+                        ₹{cartItem.item.price} × {cartItem.quantity}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDecrement(cartItem.item.id)}
+                        className="w-8 h-8 rounded-xl bg-white text-primary-600 flex items-center justify-center text-lg font-bold shadow-soft active:scale-95 transition-transform"
+                      >
+                        -
+                      </button>
+                      <span className="min-w-[2ch] text-center text-sm font-bold text-white">
+                        {cartItem.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleIncrement(cartItem.item.id)}
+                        className="w-8 h-8 rounded-xl bg-white text-primary-600 flex items-center justify-center text-lg font-bold shadow-soft active:scale-95 transition-transform"
+                      >
+                        +
+                      </button>
+                      {/* <button
                   type="button"
                   onClick={() => handleRemove(cartItem.item.id)}
                   className="ml-1 text-xs font-semibold text-primary-100/80 underline underline-offset-4"
                 >
                   Remove
                 </button> */}
+                    </div>
+                  </div>
+                ))}
               </div>
+            )}
+
+            <div className="mt-4 flex items-center justify-between gap-4">
+              <div className="text-white">
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary-100/90">
+                  Total
+                </p>
+                <p className="text-2xl font-bold">₹{totalPrice}</p>
+              </div>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={handlePlaceOrder}
+                disabled={placing}
+                className="px-6 py-3 rounded-2xl font-bold text-lg shadow-soft-xl active:scale-95 transition-transform disabled:opacity-50 bg-amber-300 text-neutral-900 border-0"
+              >
+                {placing ? "Placing..." : "Place Order"}
+              </Button>
             </div>
-          ))}
+          </div>
         </div>
       )}
-
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <div className="text-white">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary-100/90">
-            Total
-          </p>
-          <p className="text-2xl font-bold">₹{totalPrice}</p>
-        </div>
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={handlePlaceOrder}
-          disabled={placing}
-          className="px-6 py-3 rounded-2xl font-bold text-lg shadow-soft-xl active:scale-95 transition-transform disabled:opacity-50 bg-amber-300 text-neutral-900 border-0"
-        >
-          {placing ? "Placing..." : "Place Order"}
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
 
       {/* Item Modal */}
       {selectedItem && (
