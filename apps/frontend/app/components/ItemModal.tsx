@@ -36,35 +36,38 @@ export default function ItemModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-white/10 backdrop-blur-md animate-fade-in p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-neutral-900/40 backdrop-blur-md animate-fade-in p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white/80 backdrop-blur-xl w-full max-w-2xl rounded-3xl shadow-soft-xl max-h-[85vh] overflow-y-auto animate-slide-up border border-white/50"
+        className="bg-white w-full max-w-2xl rounded-[2rem] shadow-elegant max-h-[90vh] overflow-y-auto animate-slide-up border-2 border-primary-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Image */}
-        <div className="relative h-72 sm:h-96 w-full bg-neutral-50 overflow-hidden">
+        {/* Image Section */}
+        <div className="relative h-80 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
           {item.image_url ? (
             <Image
               src={item.image_url}
               alt={item.name}
               fill
-              className="object-cover transition-transform duration-700 hover:scale-105"
+              className="object-cover"
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-9xl animate-pulse">
-              🍽️
+            <div className="flex items-center justify-center h-full">
+              <span className="text-9xl opacity-20">🍽️</span>
             </div>
           )}
 
-          {/* Close button - Floated */}
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+
+          {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2.5 shadow-soft hover:shadow-soft-lg transition-all hover:scale-110 active:scale-95 z-10 group"
+            className="absolute top-5 right-5 w-12 h-12 bg-white/95 backdrop-blur-sm rounded-2xl shadow-elegant hover:shadow-glow transition-all hover:scale-110 active:scale-95 flex items-center justify-center group"
           >
             <svg
-              className="w-5 h-5 text-neutral-500 group-hover:text-neutral-800 transition-colors"
+              className="w-6 h-6 text-neutral-600 group-hover:text-neutral-900 transition-colors"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -79,58 +82,68 @@ export default function ItemModal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 sm:p-8 space-y-6">
-          <div className="flex justify-between items-start gap-4">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-neutral-800 leading-tight">
+        {/* Content Section */}
+        <div className="p-8 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-start gap-6">
+            <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 leading-tight flex-1">
               {item.name}
             </h2>
-            <div className="flex-shrink-0 bg-primary-50 px-4 py-1.5 rounded-full border border-primary-100">
-              <p className="text-primary-600 font-bold text-xl">
-                ₹{item.price}
-              </p>
+            <div className="bg-gradient-to-br from-primary-500 to-primary-600 text-white px-5 py-2.5 rounded-2xl shadow-elegant shrink-0">
+              <p className="font-bold text-2xl">₹{item.price}</p>
             </div>
           </div>
 
+          {/* Description */}
           {item.description && (
-            <div className="bg-white/50 rounded-2xl p-4 border border-white/60">
-              <p className="text-neutral-600 leading-relaxed text-lg">
+            <div className="bg-gradient-to-br from-cream-50 to-primary-50 rounded-2xl p-5 border-2 border-primary-100">
+              <p className="text-neutral-700 leading-relaxed text-base">
                 {item.description}
               </p>
             </div>
           )}
 
-          {/* Quantity selector */}
-          <div className="flex items-center justify-between bg-neutral-50 rounded-2xl p-4 border border-neutral-100">
-            <span className="font-semibold text-neutral-700 text-lg">Quantity</span>
-            <div className="flex items-center gap-6">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-12 h-12 rounded-full border-2 border-primary-200 text-primary-400 font-bold text-xl hover:bg-primary-50 hover:border-primary-300 active:scale-95 transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={quantity <= 1}
-              >
-                −
-              </button>
-              <span className="text-2xl font-bold text-neutral-800 w-8 text-center tabular-nums">
-                {quantity}
-              </span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-12 h-12 rounded-full bg-primary-500 text-white font-bold text-xl hover:bg-primary-600 hover:shadow-lg hover:shadow-primary-500/30 active:scale-95 transition-all flex items-center justify-center transform"
-              >
-                +
-              </button>
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-primary-200 to-transparent" />
+
+          {/* Quantity Selector */}
+          <div className="bg-gradient-to-br from-white to-neutral-50 rounded-2xl p-6 border-2 border-neutral-100 shadow-soft">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-neutral-800 text-lg">Quantity</span>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-12 h-12 rounded-2xl border-2 border-primary-300 text-primary-500 font-bold text-2xl hover:bg-primary-50 hover:border-primary-400 active:scale-95 transition-all flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shadow-soft shrink-0"
+                  disabled={quantity <= 1}
+                >
+                  −
+                </button>
+                <span className="text-3xl font-bold text-neutral-900 min-w-[3rem] text-center tabular-nums">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-12 h-12 rounded-2xl text-white font-bold text-2xl hover:shadow-glow active:scale-95 transition-all flex items-center justify-center shadow-elegant shrink-0"
+                  style={{background: '#8B4367'}}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Add to order button */}
-          <div className="pt-2">
-            <Button size="lg" className="w-full text-lg py-4 shadow-xl shadow-primary-500/20 hover:shadow-primary-500/30" onClick={handleAdd}>
-              <span className="mr-2">Add to Order</span>
-              <span className="opacity-80">·</span>
-              <span className="ml-2 font-bold">₹{item.price * quantity}</span>
-            </Button>
-          </div>
+          {/* Add to Cart Button */}
+          <button
+            onClick={handleAdd}
+            className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl py-5 font-bold text-lg shadow-elegant hover:shadow-glow hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+          >
+            <span>Add to Cart</span>
+            <span className="opacity-60">•</span>
+            <span className="text-xl font-bold">₹{item.price * quantity}</span>
+            <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

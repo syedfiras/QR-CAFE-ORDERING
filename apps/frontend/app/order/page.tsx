@@ -48,7 +48,6 @@ export default function OrderPage() {
         const data = await getActiveOrder(table);
         
         if (!data) {
-          // No active or recently completed order, go to menu
           router.push(`/menu?table=${table}`);
           return;
         }
@@ -70,12 +69,12 @@ export default function OrderPage() {
     return () => clearInterval(interval);
   }, [table, router, lastStatus]);
 
-  // Auto-redirect after 2 minutes of being completed
+  // Auto-redirect after 1 minute of being completed
   useEffect(() => {
     if (order?.status === "COMPLETED" && statusUpdatedAt) {
       const timer = setTimeout(() => {
         router.push(`/menu?table=${table}&new=true`);
-      }, 60000); // 1 minute
+      }, 60000);
       return () => clearTimeout(timer);
     }
   }, [order?.status, statusUpdatedAt, table, router]);
@@ -86,7 +85,7 @@ export default function OrderPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-primary-50 to-white p-6">
+      <div className="min-h-screen p-6" style={{background: '#FFF5ED'}}>
         <div className="max-w-2xl mx-auto space-y-4">
           <SkeletonCard variant="order" />
           <SkeletonCard variant="order" />
@@ -97,7 +96,7 @@ export default function OrderPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-primary-50 to-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{background: '#FFF5ED'}}>
         <EmptyState
           title="No active order"
           description="Place an order from the menu to track it here"
@@ -113,16 +112,16 @@ export default function OrderPage() {
 
   if (order.status === "COMPLETED") {
     return (
-      <div className="min-h-screen bg-linear-to-b from-primary-50 to-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="bg-white rounded-[3rem] shadow-soft-xl p-12 max-w-md w-full border border-neutral-100 flex flex-col items-center">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{background: '#FFF5ED'}}>
+        <div className="rounded-3xl shadow-elegant p-12 max-w-md w-full border-2 flex flex-col items-center" style={{background: '#FFFBF7', borderColor: '#E7E5E4'}}>
           <div className="w-24 h-24 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-5xl mb-8 animate-bounce">
             🎉
           </div>
-          <h1 className="font-display text-3xl font-bold text-neutral-800 mb-2">
+          <h1 className="text-3xl font-bold text-neutral-800 mb-2">
             Thank You!
           </h1>
           <p className="text-neutral-500 mb-8 px-4">
-            We hope you enjoyed your meal at <span className="text-primary-400 font-bold">Bistro Yahya</span>.
+            We hope you enjoyed your meal at <span className="font-bold" style={{color: '#8B4367'}}>Bistro Yahya</span>.
           </p>
 
           {/* Feedback Star Placeholder */}
@@ -134,21 +133,22 @@ export default function OrderPage() {
 
           <div className="w-full space-y-4">
             <Button 
-                size="lg" 
-                onClick={() => router.push(`/menu?table=${table}&new=true`)}
-                className="w-full py-5 rounded-4xL text-lg font-bold shadow-soft-lg"
+              size="lg" 
+              onClick={() => router.push(`/menu?table=${table}&new=true`)}
+              className="w-full py-5 rounded-2xl text-lg font-bold shadow-soft-lg"
             >
               Start New Order
             </Button>
             
-            <div className="pt-8 border-t border-neutral-100 w-full text-center">
-                <p className="text-neutral-400 text-[10px] font-black uppercase tracking-widest mb-2">New Customer?</p>
-                <button 
-                    onClick={() => router.push(`/menu?table=${table}&new=true`)}
-                    className="text-primary-400 text-sm font-bold hover:underline"
-                >
-                    Not You? Order Now →
-                </button>
+            <div className="pt-8 border-t border-neutral-200 w-full text-center">
+              <p className="text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">New Customer?</p>
+              <button 
+                onClick={() => router.push(`/menu?table=${table}&new=true`)}
+                className="text-sm font-bold"
+                style={{color: '#8B4367'}}
+              >
+                Not You? Order Now →
+              </button>
             </div>
           </div>
         </div>
@@ -164,38 +164,46 @@ export default function OrderPage() {
   const cancelledItems = order.items.filter((item) => item.is_cancelled);
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-primary-50 to-white pb-24">
+    <div className="min-h-screen pb-24" style={{background: '#FFF5ED'}}>
       {/* Header */}
-      <header className="bg-white shadow-soft">
-        <div className="max-w-2xl mx-auto px-4 py-6 sm:px-6">
+      <header className="shadow-soft-lg" style={{background: '#8B4367'}}>
+        <div className="max-w-2xl mx-auto px-5 py-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary-400">
-                Bistro Yahya
-              </h1>
-              <p className="text-neutral-500 text-sm">Table {table}</p>
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-white/95 flex items-center justify-center shadow-soft">
+                <span className="text-2xl">🍽️</span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">
+                  Bistro Yahya
+                </h1>
+                <p className="text-primary-200 text-sm font-semibold">Table {table}</p>
+              </div>
             </div>
-                  {order && <StatusBadge status={order.status} />}
+            {order && <StatusBadge status={order.status} />}
           </div>
           
           {/* Order time */}
-          <p className="text-neutral-500 text-sm italic font-medium">
-            Order tracking is live • Updated just now
+          <p className="text-primary-100 text-sm font-medium flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            Order tracking is live
           </p>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-2xl mx-auto px-4 py-6 sm:px-6">
+      <main className="max-w-2xl mx-auto px-5 py-8">
         {/* Order items */}
-        <div className="bg-white rounded-3xl shadow-soft p-8 mb-6 border border-neutral-100">
+        <div className="rounded-3xl shadow-soft p-6 mb-6 border-2 border-neutral-200" style={{background: '#FFFBF7'}}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-xl font-bold text-neutral-800 flex items-center gap-2">
-                <span className="w-8 h-8 flex items-center justify-center bg-orange-100 text-orange-500 rounded-xl text-xs">☕</span>
-                Your Selection
+            <h2 className="text-xl font-bold text-neutral-800 flex items-center gap-3">
+              <span className="w-10 h-10 flex items-center justify-center rounded-2xl text-xl" style={{background: '#FFF0ED', color: '#8B4367'}}>
+                ☕
+              </span>
+              Your Order
             </h2>
-            <span className="bg-neutral-100 text-neutral-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                {activeItems.length} items
+            <span className="bg-neutral-100 text-neutral-600 px-3 py-1.5 rounded-full text-xs font-bold">
+              {activeItems.length} items
             </span>
           </div>
 
@@ -204,43 +212,43 @@ export default function OrderPage() {
               {activeItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between py-1"
+                  className="flex items-center justify-between py-3 border-b border-neutral-100 last:border-0"
                 >
                   <div className="flex-1">
-                    <p className="font-bold text-neutral-800">
+                    <p className="font-bold text-neutral-800 text-base">
                       {item.menu_items.name}
                     </p>
-                    <p className="text-neutral-400 text-xs font-bold uppercase">
-                      Quantity: {item.quantity}
+                    <p className="text-neutral-500 text-sm font-semibold mt-1">
+                      Qty: {item.quantity}
                     </p>
                   </div>
-                  <p className="font-black text-neutral-800">
+                  <p className="font-bold text-neutral-900 text-lg">
                     ₹{item.menu_items.price * item.quantity}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-neutral-500 text-center py-8 bg-neutral-50 rounded-2xl italic border-2 border-dashed border-neutral-100">
+            <p className="text-neutral-500 text-center py-8 bg-neutral-50 rounded-2xl italic border-2 border-dashed border-neutral-200">
               All items have been cancelled
             </p>
           )}
 
           {/* Cancelled items */}
           {cancelledItems.length > 0 && (
-            <div className="border-t border-neutral-100 pt-6 mt-6">
-              <p className="text-neutral-400 text-[10px] font-black uppercase tracking-widest mb-3">Cancelled Items</p>
+            <div className="border-t-2 border-neutral-200 pt-6 mt-6">
+              <p className="text-neutral-500 text-xs font-bold uppercase tracking-wider mb-4">Cancelled Items</p>
               {cancelledItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between py-2 opacity-50 grayscale"
+                  className="flex items-center justify-between py-3 opacity-50"
                 >
                   <div className="flex-1">
                     <p className="font-bold text-neutral-600 line-through">
                       {item.menu_items.name}
                     </p>
                   </div>
-                  <span className="text-status-cancelled text-[10px] font-black uppercase bg-red-50 px-2 py-0.5 rounded-full">
+                  <span className="text-red-600 text-xs font-bold bg-red-50 px-3 py-1 rounded-full">
                     Cancelled
                   </span>
                 </div>
@@ -249,18 +257,19 @@ export default function OrderPage() {
           )}
 
           {/* Total */}
-          <div className="border-t border-neutral-100 pt-6 mt-6">
-            <div className="flex items-center justify-between p-4 bg-primary-50 rounded-2xl border border-white">
-              <p className="text-neutral-600 font-bold uppercase tracking-widest text-xs">Final Bill Value</p>
-              <p className="text-3xl font-black text-primary-400">₹{order.total}</p>
+          <div className="border-t-2 border-neutral-200 pt-6 mt-6">
+            <div className="flex items-center justify-between p-5 rounded-2xl border-2" style={{background: '#FFF0ED', borderColor: '#E8D4DD'}}>
+              <p className="text-neutral-700 font-bold uppercase tracking-wider text-sm">Total Amount</p>
+              <p className="text-3xl font-bold" style={{color: '#8B4367'}}>₹{order.total}</p>
             </div>
           </div>
         </div>
 
         {/* Info message */}
-        <div className="bg-pink-300 rounded-3xl p-6 text-center mb-10 shadow-lg">
-          <p className="text-white text-sm font-medium flex items-center justify-center gap-2">
-            <span className="text-xl">💡</span> For assistance or faster billing, please call staff
+        <div className="rounded-3xl p-6 text-center mb-6 shadow-soft border-2" style={{background: '#8B4367', borderColor: '#6F3554'}}>
+          <p className="text-white text-sm font-semibold flex items-center justify-center gap-3">
+            <span className="text-2xl">💡</span> 
+            For assistance or faster billing, please call our staff
           </p>
         </div>
 
@@ -270,7 +279,7 @@ export default function OrderPage() {
             size="lg" 
             variant="secondary" 
             onClick={handleAddMore} 
-            className="w-full py-5 rounded-2xl shadow-soft font-black text-lg border-primary-200"
+            className="w-full py-5 rounded-2xl shadow-soft font-bold text-lg border-2"
           >
             Add More Items
           </Button>

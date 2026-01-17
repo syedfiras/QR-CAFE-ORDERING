@@ -19,15 +19,16 @@ export default function Button({
   const baseStyles =
     "font-bold rounded-xl transition-all duration-200 active:scale-95 disabled:active:scale-100 flex items-center justify-center";
 
-  const variants = {
-    primary:
-      "bg-primary-500 text-white shadow-soft hover:bg-primary-600 hover:shadow-soft-lg disabled:bg-neutral-200 disabled:text-neutral-400",
-    secondary:
-      "bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50 shadow-sm",
-    destructive:
-      "bg-white text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 shadow-sm",
-    ghost: "text-neutral-600 hover:bg-neutral-100",
-  };
+const variants = {
+  primary:
+    "text-white shadow-elegant active:scale-95 disabled:opacity-50 disabled:shadow-none",
+  secondary:
+    "bg-white text-neutral-700 border-2 border-neutral-200 active:bg-neutral-50 shadow-soft",
+  destructive:
+    "bg-white text-red-600 border-2 border-red-200 active:bg-red-50 shadow-soft",
+  ghost: 
+    "text-neutral-600 active:bg-neutral-100",
+};
 
   const sizes = {
     sm: "px-4 py-2 text-sm",
@@ -36,11 +37,12 @@ export default function Button({
   };
 
   return (
-    <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-      disabled={disabled || loading}
-      {...props}
-    >
+  <button
+    className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+    style={variant === 'primary' ? {background: '#8B4367'} : {}}
+    disabled={disabled || loading}
+    {...props}
+  >
       {loading ? (
         <div className="flex items-center justify-center gap-2">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

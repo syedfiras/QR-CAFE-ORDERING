@@ -19,25 +19,14 @@ export default function MetricCard({
   const colorClass = color.startsWith("text-") ? color : `text-${color}`;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 border border-neutral-100 flex items-center gap-4 hover:shadow-md transition-all duration-200">
-      <div className="w-10 h-10 rounded-xl bg-neutral-50 flex items-center justify-center text-xl shrink-0">
-        {icon}
+    <div className="bg-white rounded-2xl p-5 shadow-soft border-2 border-neutral-200 hover:shadow-soft-lg transition-all">
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-2xl">{icon}</span>
+        <p className="text-neutral-500 text-sm font-semibold uppercase tracking-wide">{label}</p>
       </div>
-      <div>
-        <p className="text-neutral-400 text-xs font-bold uppercase tracking-wider mb-0.5 whitespace-nowrap">
-          {label}
-        </p>
-        <div className="flex items-end gap-2">
-          <span className={`text-2xl font-display font-bold ${colorClass} leading-none`}>
-            {value}
-          </span>
-          {trend && (
-            <span className="text-neutral-400 text-[10px] font-medium mb-0.5">
-              {trend}
-            </span>
-          )}
-        </div>
-      </div>
+      <p className={`text-3xl font-bold ${typeof color === 'string' && color.startsWith('#') ? '' : color}`} style={typeof color === 'string' && color.startsWith('#') ? {color} : {}}>
+        {value}
+      </p>
     </div>
   );
 }
