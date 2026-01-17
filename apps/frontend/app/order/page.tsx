@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveOrder } from "../services/api";
 import StatusBadge from "../components/StatusBadge";
 import Button from "../components/Button";
 import SkeletonCard from "../components/SkeletonCard";
 import EmptyState from "../components/EmptyState";
+import Modal from "../components/Modal";
 
 interface OrderItem {
   id: string;
@@ -35,6 +37,7 @@ export default function OrderPage() {
 
   const [statusUpdatedAt, setStatusUpdatedAt] = useState<number | null>(null);
   const [lastStatus, setLastStatus] = useState<string | null>(null);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   // Poll for order updates
   useEffect(() => {
@@ -164,6 +167,7 @@ export default function OrderPage() {
   const cancelledItems = order.items.filter((item) => item.is_cancelled);
 
   return (
+    <>
     <div className="min-h-screen pb-24" style={{background: '#FFF5ED'}}>
       {/* Header */}
       <header className="shadow-soft-lg" style={{background: '#8B4367'}}>
@@ -265,26 +269,107 @@ export default function OrderPage() {
           </div>
         </div>
 
-        {/* Info message */}
-        <div className="rounded-3xl p-6 text-center mb-6 shadow-soft border-2" style={{background: '#8B4367', borderColor: '#6F3554'}}>
-          <p className="text-white text-sm font-semibold flex items-center justify-center gap-3">
-            <span className="text-2xl">💡</span> 
-            For assistance or faster billing, please call our staff
-          </p>
-        </div>
+        
+        <p className="text-neutral-500 text-xs text-center mb-6 flex items-center justify-center gap-2">
+          <span className="text-base">💡</span>
+          <span>For assistance or faster billing, please call our staff.</span>
+        </p>
 
-        {/* Add more button */}
         {order.status !== "CANCELLED" && (
           <Button 
-            size="lg" 
-            variant="secondary" 
+            size="lg"
+            variant="secondary"
             onClick={handleAddMore} 
-            className="w-full py-5 rounded-2xl shadow-soft font-bold text-lg border-2"
+            className="w-full py-5 rounded-2xl shadow-soft-lg font-bold text-lg border-2 border-primary-200 bg-gradient-to-r from-white via-primary-50 to-primary-100 text-primary-700 mb-6 flex items-center justify-center gap-2"
           >
-            Add More Items
+            <span>➕ Add More Items</span>
           </Button>
         )}
+
+        <div
+          className="rounded-3xl shadow-soft p-6 mb-4 border-2 border-neutral-200"
+          style={{ background: "#FFFBF7" }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-2xl bg-primary-50 flex items-center justify-center text-xl">
+                💳
+              </span>
+              Payment options
+            </h3>
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary-600">
+              Secure & Easy
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/60">
+              <p className="text-sm font-semibold text-primary-800">
+                Pay now by scanning the QR code
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                className="relative w-40 h-40 rounded-2xl bg-white border border-primary-200 overflow-hidden flex items-center justify-center shadow-soft hover:shadow-soft-lg hover:scale-[1.02] transition-transform"
+              >
+                <Image
+                  src="/images/payment-qr.jpg"
+                  alt="Scan to pay"
+                  fill
+                  className="object-contain"
+                />
+              </button>
+              {/* <p className="text-[11px] text-primary-700/90 font-medium uppercase tracking-wide text-center">
+                Show this screen at your table and scan to pay
+              </p> */}
+            </div>
+
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-200">
+              <div className="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center">
+                <span className="text-lg">🏷️</span>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-neutral-800">
+                  Prefer to pay at the counter?
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  You can pay at the billing counter in cash or card. Just share
+                  your table number: <span className="font-semibold">Table {table}</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
+
+    {showQrModal && (
+      <Modal
+        isOpen={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        title="Scan to Pay"
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-64 h-64 rounded-3xl bg-white border border-primary-200 overflow-hidden flex items-center justify-center">
+            <Image
+              src="/images/payment-qr.jpg"
+              alt="Scan to pay"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <a
+            href="/images/payment-qr.jpg"
+            download
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-neutral-900 text-white text-sm font-semibold shadow-soft active:scale-95 transition-transform"
+          >
+            <span>Download QR</span>
+            <span>⬇️</span>
+          </a>
+        </div>
+      </Modal>
+    )}
+    </>
   );
 }

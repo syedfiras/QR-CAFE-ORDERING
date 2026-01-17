@@ -113,6 +113,28 @@ export default function MenuPage() {
     }
   };
 
+  const handleIncrement = (itemId: string) => {
+    setCart((prev) =>
+      prev.map((c) =>
+        c.item.id === itemId ? { ...c, quantity: c.quantity + 1 } : c
+      )
+    );
+  };
+
+  const handleDecrement = (itemId: string) => {
+    setCart((prev) =>
+      prev
+        .map((c) =>
+          c.item.id === itemId ? { ...c, quantity: c.quantity - 1 } : c
+        )
+        .filter((c) => c.quantity > 0)
+    );
+  };
+
+  const handleRemove = (itemId: string) => {
+    setCart((prev) => prev.filter((c) => c.item.id !== itemId));
+  };
+
   const totalItems = cart.reduce((sum, c) => sum + c.quantity, 0);
   const totalPrice = cart.reduce(
     (sum, c) => sum + c.item.price * c.quantity,
@@ -136,6 +158,7 @@ export default function MenuPage() {
     );
 
   const [showCafeName, setShowCafeName] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
     return (
     <div className="min-h-screen" style={{background: '#FFF5ED'}}>
@@ -285,21 +308,105 @@ export default function MenuPage() {
 {/* Floating Cart */}
 {cart.length > 0 && (
   <div className="fixed bottom-4 left-4 right-4 z-40 animate-slide-up">
-    <div className="max-w-7xl mx-auto rounded-3xl shadow-elegant p-5 border-2" style={{background: '#8B4367', borderColor: '#6F3554'}}>
-      <div className="flex items-center justify-between gap-4">
+    <div
+      className="max-w-7xl mx-auto rounded-3xl shadow-elegant p-5 border-2"
+      style={{ background: "#8B4367", borderColor: "#6F3554" }}
+    >
+      <div className="flex items-center justify-between gap-3">
         <div className="flex-1 text-white">
           <p className="font-bold text-lg">
             {totalItems} item{totalItems !== 1 ? "s" : ""} added
           </p>
-          <p className="text-2xl font-bold">₹{totalPrice}</p>
+          {/* <p className="text-sm text-primary-100/90">
+            Tap to review or edit your order
+          </p> */}
         </div>
         <button
+          type="button"
+          onClick={() => setIsCartOpen((open) => !open)}
+          className="w-9 h-9 rounded-2xl bg-white/10 border border-white/30 flex items-center justify-center text-white shadow-soft active:scale-95 transition-transform"
+        >
+          <svg
+            className={`w-4 h-4 transform transition-transform ${
+              isCartOpen ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12L10 7L15 12"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {isCartOpen && (
+        <div className="mt-4 max-h-60 overflow-y-auto pr-1 space-y-3">
+          {cart.map((cartItem) => (
+            <div
+              key={cartItem.item.id}
+              className="flex items-center justify-between gap-3 rounded-2xl bg-black/10 px-4 py-3"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">
+                  {cartItem.item.name}
+                </p>
+                <p className="text-xs text-primary-100 mt-0.5">
+                  ₹{cartItem.item.price} × {cartItem.quantity}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDecrement(cartItem.item.id)}
+                  className="w-8 h-8 rounded-xl bg-white text-primary-600 flex items-center justify-center text-lg font-bold shadow-soft active:scale-95 transition-transform"
+                >
+                  -
+                </button>
+                <span className="min-w-[2ch] text-center text-sm font-bold text-white">
+                  {cartItem.quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleIncrement(cartItem.item.id)}
+                  className="w-8 h-8 rounded-xl bg-white text-primary-600 flex items-center justify-center text-lg font-bold shadow-soft active:scale-95 transition-transform"
+                >
+                  +
+                </button>
+                {/* <button
+                  type="button"
+                  onClick={() => handleRemove(cartItem.item.id)}
+                  className="ml-1 text-xs font-semibold text-primary-100/80 underline underline-offset-4"
+                >
+                  Remove
+                </button> */}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 flex items-center justify-between gap-4">
+        <div className="text-white">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary-100/90">
+            Total
+          </p>
+          <p className="text-2xl font-bold">₹{totalPrice}</p>
+        </div>
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={handlePlaceOrder}
           disabled={placing}
-          className="bg-white text-primary-600 px-6 py-3 rounded-2xl font-bold text-lg shadow-soft-xl active:scale-95 transition-transform disabled:opacity-50"
+          className="px-6 py-3 rounded-2xl font-bold text-lg shadow-soft-xl active:scale-95 transition-transform disabled:opacity-50 bg-amber-300 text-neutral-900 border-0"
         >
-          {placing ? 'Placing...' : 'Place Order'}
-        </button>
+          {placing ? "Placing..." : "Place Order"}
+        </Button>
       </div>
     </div>
   </div>
