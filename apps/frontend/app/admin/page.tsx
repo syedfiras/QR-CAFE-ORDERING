@@ -8,9 +8,14 @@ import {
     cancelOrder,
     markAsPaid,
     getMetrics,
+    createMenuItem,
+    updateMenuItem,
+    deleteMenuItem,
 } from "../services/api";
 import MetricCard from "../components/MetricCard";
 import OrderCard from "../components/OrderCard";
+import AddItemModal from "../components/AddItemModal";
+import ManageItemsModal from "../components/ManageItemsModal";
 import SkeletonCard from "../components/SkeletonCard";
 import EmptyState from "../components/EmptyState";
 import ConfirmModal from "../components/ConfirmModal";
@@ -55,6 +60,10 @@ export default function AdminPage() {
     const [loading, setLoading] = useState(true);
     const [paidOrders, setPaidOrders] = useState<Set<string>>(new Set());
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<any>(null);
 
     // Modal State
     const [confirmState, setConfirmState] = useState<{
@@ -150,6 +159,24 @@ export default function AdminPage() {
         loadMetrics();
     };
 
+    const handleSaveItem = async (formData: FormData) => {
+        if (editingItem) {
+            await updateMenuItem(editingItem.id, formData);
+        } else {
+            await createMenuItem(formData);
+        }
+    };
+
+    const handleEditItem = (item: any) => {
+        setEditingItem(item);
+        setIsManageModalOpen(false);
+        setIsAddModalOpen(true);
+    };
+
+    const handleDeleteItem = async (id: string) => {
+        await deleteMenuItem(id);
+    };
+
     // Calculate totals for orders
     const getOrderTotal = (order: AdminOrder) => {
         return order.order_items
@@ -181,6 +208,32 @@ export default function AdminPage() {
                 onClose={() => setIsHistoryOpen(false)}
             />
 
+            <AddItemModal
+                isOpen={isAddModalOpen}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setEditingItem(null);
+                }}
+                onSubmit={handleSaveItem}
+                initialData={editingItem}
+                onBack={() => {
+                    setIsAddModalOpen(false);
+                    setIsManageModalOpen(true);
+                }}
+            />
+
+            <ManageItemsModal
+                isOpen={isManageModalOpen}
+                onClose={() => setIsManageModalOpen(false)}
+                onAddNew={() => {
+                    setEditingItem(null);
+                    setIsManageModalOpen(false);
+                    setIsAddModalOpen(true);
+                }}
+                onEdit={handleEditItem}
+                onDelete={handleDeleteItem}
+            />
+
             {/* Header */}
             <header className="shadow-soft-xl sticky top-0 z-40 text-white border-b-2 bg-primary-700 border-primary-800">
                 <div className="max-w-7xl mx-auto px-4 py-5 sm:px-6 flex items-center justify-between">
@@ -203,13 +256,20 @@ export default function AdminPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border-2 border-white/20 text-green-300 rounded-full text-xs font-bold">
-                            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
+                        <button
+                            onClick={() => setIsManageModalOpen(true)}
+                            className="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/10"
+                        >
+                            <span className="text-lg leading-none">⚙️</span>
+                            Manage Items
+                        </button>
+                        <span className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-100 border border-green-400/30 rounded-full text-xs font-bold animate-pulse">
+                            <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
                             LIVE
                         </span>
                     </div>
                 </div>
-            </header >
+            </header>
 
             <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 space-y-10">
 

@@ -125,3 +125,35 @@ export const getOrderHistory = async (date: string) => {
   const res = await fetch(`${BASE_URL}/orders/history?date=${date}`);
   return res.json();
 };
+
+export const createMenuItem = async (payload: FormData) => {
+  const res = await fetch(`${BASE_URL}/menu/items`, {
+    method: "POST",
+    body: payload,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to create item: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+export const updateMenuItem = async (id: string, payload: FormData) => {
+  const res = await fetch(`${BASE_URL}/menu/items/${id}`, {
+    method: "PUT",
+    body: payload,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to update item: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+export const deleteMenuItem = async (id: string) => {
+  const res = await fetch(`${BASE_URL}/menu/items/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to delete item: ${res.statusText}`);
+  }
+  return res.json();
+};

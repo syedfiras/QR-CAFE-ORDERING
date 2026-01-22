@@ -21,3 +21,176 @@ export const getMenu = async (req, res) => {
   res.json(data);
 };
 
+export const createMenuItem = async (req, res) => {
+  try {
+    const { name, description, price, category } = req.body;
+    const file = req.file;
+
+    let image_url = req.body.image_url;
+
+    if (file) {
+      const fileExt = file.originalname.split(".").pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `menu/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("menu-items")
+        .upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicURLData } = supabase.storage
+        .from("menu-items")
+        .getPublicUrl(filePath);
+
+      image_url = publicURLData.publicUrl;
+    }
+
+    let categoryId;
+    const { data: existingCategory } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("name", category)
+      .single();
+
+    if (existingCategory) {
+      categoryId = existingCategory.id;
+    } else {
+      const { data: newCategory, error: createCatError } = await supabase
+        .from("categories")
+        .insert([{ name: category, is_active: true }])
+        .select()
+        .single();
+
+      if (createCatError) throw createCatError;
+      categoryId = newCategory.id;
+    }
+
+    const { data: newItem, error: itemError } = await supabase
+      .from("menu_items")
+      .insert([{
+        name,
+        description,
+        price,
+        category_id: categoryId,
+        image_url: image_url || "/images/default-food.png",
+        is_available: true
+      }])
+      .select()
+      .single();
+
+    if (itemError) throw itemError;
+
+    res.status(201).json(newItem);
+
+  } catch (error) {
+    console.error("Error creating menu item:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateMenuItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, price, category } = req.body;
+    const file = req.file;
+
+    // Start with existing item to preserve image if not provided
+    const { data: currentItem, error: fetchError } = await supabase
+      .from("menu_items")
+      .select("image_url, category_id")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    let image_url = currentItem.image_url;
+
+    // 1. Upload new image if provided
+    if (file) {
+      const fileExt = file.originalname.split(".").pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `menu/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("menu-items")
+        .upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicURLData } = supabase.storage
+        .from("menu-items")
+        .getPublicUrl(filePath);
+
+      image_url = publicURLData.publicUrl;
+    }
+
+    // 2. Handle Category Change
+    let categoryId = currentItem.category_id;
+    if (category) {
+      const { data: existingCategory } = await supabase
+        .from("categories")
+        .select("id")
+        .eq("name", category)
+        .single();
+
+      if (existingCategory) {
+        categoryId = existingCategory.id;
+      } else {
+        const { data: newCategory, error: createCatError } = await supabase
+          .from("categories")
+          .insert([{ name: category, is_active: true }])
+          .select()
+          .single();
+
+        if (createCatError) throw createCatError;
+        categoryId = newCategory.id;
+      }
+    }
+
+    // 3. Update Item
+    const { data: updatedItem, error: updateError } = await supabase
+      .from("menu_items")
+      .update({
+        name,
+        description,
+        price,
+        category_id: categoryId,
+        image_url,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    res.json(updatedItem);
+
+  } catch (error) {
+    console.error("Error updating menu item:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteMenuItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from("menu_items")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting menu item:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
