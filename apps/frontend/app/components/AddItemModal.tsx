@@ -48,6 +48,7 @@ export default function AddItemModal({
     const [price, setPrice] = useState("");
     const [category, setCategory] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isNewCategory, setIsNewCategory] = useState(false);
 
@@ -69,12 +70,14 @@ export default function AddItemModal({
                         setPrice(initialData.price.toString());
                         setCategory(initialData.category);
                         setIsNewCategory(false);
+                        setCategoryImageFile(null);
                     } else {
                         // Add Mode: Reset
                         setName("");
                         setDescription("");
                         setPrice("");
                         setImageFile(null);
+                        setCategoryImageFile(null);
                         setIsNewCategory(false);
                         if (data && data.length > 0) {
                             setCategory(data[0].name);
@@ -102,8 +105,12 @@ export default function AddItemModal({
             formData.append("description", description);
             formData.append("price", price);
             formData.append("category", category);
+            formData.append("isNewCategory", isNewCategory.toString());
             if (imageFile) {
                 formData.append("image", imageFile);
+            }
+            if (categoryImageFile && isNewCategory) {
+                formData.append("categoryImage", categoryImageFile);
             }
 
             await onSubmit(formData);
@@ -131,7 +138,7 @@ export default function AddItemModal({
 
             {/* Modal Content */}
             <div
-                className={`relative bg-white rounded-3xl shadow-soft-xl max-w-md w-full p-8 transform transition-all duration-300 ${isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
+                className={`relative bg-white rounded-3xl shadow-soft-xl max-w-md w-full p-8 transform transition-all duration-300 max-h-[90vh] overflow-y-auto ${isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
                     }`}
             >
                 <div className="flex items-center justify-between mb-6">
@@ -202,28 +209,56 @@ export default function AddItemModal({
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    required={isNewCategory || categories.length === 0}
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className="flex-1 px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
-                                    placeholder="New Category Name"
-                                    autoFocus={isNewCategory}
-                                />
-                                {categories.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsNewCategory(false);
-                                            if (categories.length > 0) setCategory(categories[0].name);
+                            <div className="space-y-3">
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        required={isNewCategory || categories.length === 0}
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="flex-1 px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium"
+                                        placeholder="New Category Name"
+                                        autoFocus={isNewCategory}
+                                    />
+                                    {categories.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsNewCategory(false);
+                                                setCategoryImageFile(null);
+                                                if (categories.length > 0) setCategory(categories[0].name);
+                                            }}
+                                            className="px-4 py-2 text-xs font-bold text-neutral-500 hover:text-neutral-700 underline"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                {/* Category Image Upload - Only for new categories */}
+                                <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
+                                    <label className="block text-xs font-bold text-primary-700 uppercase tracking-widest mb-2">
+                                        Category Fallback Image (Optional)
+                                    </label>
+                                    <p className="text-xs text-neutral-500 mb-3">
+                                        This image will be used as fallback for items in this category that don't have their own image.
+                                    </p>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setCategoryImageFile(e.target.files[0]);
+                                            }
                                         }}
-                                        className="px-4 py-2 text-xs font-bold text-neutral-500 hover:text-neutral-700 underline"
-                                    >
-                                        Cancel
-                                    </button>
-                                )}
+                                        className="w-full px-3 py-2 rounded-lg bg-white border border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all font-medium text-sm file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary-100 file:text-primary-700 hover:file:bg-primary-200"
+                                    />
+                                    {categoryImageFile && (
+                                        <p className="text-xs text-primary-600 mt-2 font-medium">
+                                            Selected: {categoryImageFile.name}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -280,7 +315,9 @@ export default function AddItemModal({
                             <p className="text-xs text-neutral-500 mt-2">Current image: <a href={initialData.image_url} target="_blank" className="text-primary-600 hover:underline">View</a></p>
                         ) : null}
                         <p className="text-[10px] text-neutral-400 mt-1">
-                            Upload to change the current image.
+                            {isNewCategory 
+                                ? "If no item image is uploaded, the category fallback image will be used."
+                                : "Upload to change the current image."}
                         </p>
                     </div>
 
@@ -305,3 +342,4 @@ export default function AddItemModal({
         </div>
     );
 }
+

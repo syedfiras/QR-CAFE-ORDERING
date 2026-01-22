@@ -18,7 +18,7 @@ interface MenuItem {
     id: string;
     name: string;
     price: number;
-    image_url: string;
+    image_url?: string | null;
     description?: string;
     is_available: boolean;
 }
@@ -172,12 +172,18 @@ export default function ManageItemsModal({
                                             <div key={item.id} className="bg-white p-4 rounded-2xl border border-neutral-100 shadow-sm flex flex-col gap-4 hover:shadow-md transition-shadow group">
                                                 <div className="flex gap-4 items-start">
                                                     <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-neutral-100">
-                                                        <Image
-                                                            src={item.image_url}
-                                                            alt={item.name}
-                                                            fill
-                                                            className="object-cover"
-                                                        />
+                                                        {item.image_url && item.image_url.trim() !== '' ? (
+                                                            <Image
+                                                                src={item.image_url}
+                                                                alt={item.name}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-2xl opacity-30">
+                                                                🍽️
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h5 className="font-bold text-neutral-800 truncate">{item.name}</h5>

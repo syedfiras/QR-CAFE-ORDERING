@@ -14,7 +14,7 @@ interface MenuItem {
   id: string;
   name: string;
   price: number;
-  image_url: string;
+  image_url?: string | null;
   description?: string;
   is_available: boolean;
 }
@@ -33,6 +33,7 @@ export default function MenuPage() {
   const [menu, setMenu] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
   const [cart, setCart] = useState<{ item: MenuItem; quantity: number }[]>([]);
   const [placing, setPlacing] = useState(false);
   const [addingToExisting, setAddingToExisting] = useState(false);
@@ -276,14 +277,18 @@ export default function MenuPage() {
 
                 {/* Horizontal Scroll Grid */}
                 <div className="flex overflow-x-auto gap-5 pb-4 -mx-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
-                  {category.menu_items.map((item) => (
-                    <div key={item.id} className="shrink-0 w-72 snap-center">
-                      <ItemCard
-                        item={item}
-                        onClick={() => setSelectedItem(item)}
-                      />
-                    </div>
-                  ))}
+                    {category.menu_items.map((item) => (
+                      <div key={item.id} className="shrink-0 w-72 snap-center">
+                        <ItemCard
+                          item={item}
+                          categoryName={category.name}
+                          onClick={() => {
+                            setSelectedItem(item);
+                            setSelectedCategoryName(category.name);
+                          }}
+                        />
+                      </div>
+                    ))}
                 </div>
               </div>
             ))}
@@ -418,8 +423,12 @@ export default function MenuPage() {
       {selectedItem && (
         <ItemModal
           item={selectedItem}
+          categoryName={selectedCategoryName}
           isOpen={!!selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            setSelectedItem(null);
+            setSelectedCategoryName("");
+          }}
           onAddToCart={handleAddToCart}
         />
       )}

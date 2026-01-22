@@ -299,7 +299,7 @@ export default function AdminPage() {
                             ))}
                         </div>
                     ) : activeOrders.length === 0 ? (
-                        <div className="bg-white border-2 border-dashed border-neutral-200 rounded-3xl p-16 text-center">
+                        <div className="bg-white border-2 border-dashed border-neutral-200 rounded-3xl p-4 text-center">
                             <EmptyState
                                 icon="👨‍🍳"
                                 title="Kitchen is Quiet"

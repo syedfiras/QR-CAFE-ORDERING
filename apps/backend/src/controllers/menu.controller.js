@@ -1,5 +1,19 @@
 import supabase from "../config/supabase.js";
 
+/**
+ * Normalizes a category name for use in file paths
+ * - Converts to lowercase
+ * - Replaces spaces and special characters with dashes
+ */
+function normalizeCategoryName(categoryName) {
+  return categoryName
+    .toLowerCase()
+    .replace(/[&]/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-+/g, '-');
+}
+
 export const getMenu = async (req, res) => {
   const { data, error } = await supabase
     .from("categories")
@@ -23,31 +37,35 @@ export const getMenu = async (req, res) => {
 
 export const createMenuItem = async (req, res) => {
   try {
-    const { name, description, price, category } = req.body;
-    const file = req.file;
+    const { name, description, price, category, isNewCategory } = req.body;
+    const files = req.files || {};
+    const imageFile = files.image ? files.image[0] : null;
+    const categoryImageFile = files.categoryImage ? files.categoryImage[0] : null;
 
     let image_url = req.body.image_url;
 
-    if (file) {
-      const fileExt = file.originalname.split(".").pop();
+    // 1. Upload item image if provided
+    if (imageFile) {
+      const fileExt = imageFile.originalname.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `menu/${fileName}`;
+      const filePath = `items/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("menu-items")
-        .upload(filePath, file.buffer, {
-          contentType: file.mimetype,
+        .from("menu-images")
+        .upload(filePath, imageFile.buffer, {
+          contentType: imageFile.mimetype,
         });
 
       if (uploadError) throw uploadError;
 
       const { data: publicURLData } = supabase.storage
-        .from("menu-items")
+        .from("menu-images")
         .getPublicUrl(filePath);
 
       image_url = publicURLData.publicUrl;
     }
 
+    // 2. Handle Category - find or create
     let categoryId;
     const { data: existingCategory } = await supabase
       .from("categories")
@@ -58,6 +76,7 @@ export const createMenuItem = async (req, res) => {
     if (existingCategory) {
       categoryId = existingCategory.id;
     } else {
+      // Create new category
       const { data: newCategory, error: createCatError } = await supabase
         .from("categories")
         .insert([{ name: category, is_active: true }])
@@ -66,8 +85,27 @@ export const createMenuItem = async (req, res) => {
 
       if (createCatError) throw createCatError;
       categoryId = newCategory.id;
+
+      // 3. Upload category fallback image if provided for new category
+      if (categoryImageFile && isNewCategory === "true") {
+        const normalizedName = normalizeCategoryName(category);
+        const categoryFilePath = `categories/${normalizedName}.webp`;
+
+        const { error: catImageError } = await supabase.storage
+          .from("menu-images")
+          .upload(categoryFilePath, categoryImageFile.buffer, {
+            contentType: categoryImageFile.mimetype,
+            upsert: true, // Overwrite if exists
+          });
+
+        if (catImageError) {
+          console.warn("Failed to upload category image:", catImageError);
+          // Don't throw - category image is optional
+        }
+      }
     }
 
+    // 4. Create the menu item
     const { data: newItem, error: itemError } = await supabase
       .from("menu_items")
       .insert([{
@@ -75,7 +113,7 @@ export const createMenuItem = async (req, res) => {
         description,
         price,
         category_id: categoryId,
-        image_url: image_url || "/images/default-food.png",
+        image_url: image_url || null, // Allow null for fallback to category image
         is_available: true
       }])
       .select()
@@ -112,10 +150,10 @@ export const updateMenuItem = async (req, res) => {
     if (file) {
       const fileExt = file.originalname.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `menu/${fileName}`;
+      const filePath = `items/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("menu-items")
+        .from("menu-images")
         .upload(filePath, file.buffer, {
           contentType: file.mimetype,
         });
@@ -123,7 +161,7 @@ export const updateMenuItem = async (req, res) => {
       if (uploadError) throw uploadError;
 
       const { data: publicURLData } = supabase.storage
-        .from("menu-items")
+        .from("menu-images")
         .getPublicUrl(filePath);
 
       image_url = publicURLData.publicUrl;
@@ -193,4 +231,5 @@ export const deleteMenuItem = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 

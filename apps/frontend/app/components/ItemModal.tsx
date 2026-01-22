@@ -1,18 +1,22 @@
+"use client";
+
 import React, { useState } from "react";
 import Image from "next/image";
 import Button from "./Button";
+import { getMenuItemImage, DEFAULT_FOOD_EMOJI } from "../utils/getMenuItemImage";
 
 interface MenuItem {
     id: string;
     name: string;
     price: number;
-    image_url: string;
+    image_url?: string | null;
     description?: string;
     is_available: boolean;
 }
 
 interface ItemModalProps {
     item: MenuItem;
+    categoryName?: string;
     isOpen: boolean;
     onClose: () => void;
     onAddToCart: (item: MenuItem, quantity: number) => void;
@@ -20,11 +24,16 @@ interface ItemModalProps {
 
 export default function ItemModal({
     item,
+    categoryName,
     isOpen,
     onClose,
     onAddToCart,
 }: ItemModalProps) {
     const [quantity, setQuantity] = useState(1);
+    const [imageError, setImageError] = useState(false);
+
+    const imageUrl = getMenuItemImage(item, categoryName);
+    const showImage = imageUrl && !imageError;
 
     if (!isOpen) return null;
 
@@ -45,16 +54,17 @@ export default function ItemModal({
             >
                 {/* Image Section */}
                 <div className="relative h-80 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
-                    {item.image_url ? (
+                    {showImage ? (
                         <Image
-                            src={item.image_url}
+                            src={imageUrl}
                             alt={item.name}
                             fill
                             className="object-cover"
+                            onError={() => setImageError(true)}
                         />
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <span className="text-9xl opacity-20">🍽️</span>
+                            <span className="text-9xl opacity-20">{DEFAULT_FOOD_EMOJI}</span>
                         </div>
                     )}
 
@@ -148,3 +158,4 @@ export default function ItemModal({
         </div>
     );
 }
+

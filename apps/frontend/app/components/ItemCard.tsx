@@ -1,23 +1,28 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
-import { menuImages } from "../utils/menuImages";
+import { getMenuItemImage, DEFAULT_FOOD_EMOJI } from "../utils/getMenuItemImage";
 
 interface MenuItem {
   id: string;
   name: string;
   price: number;
-  image_url: string;
+  image_url?: string | null;
   description?: string;
   is_available: boolean;
 }
 
 interface ItemCardProps {
   item: MenuItem;
+  categoryName?: string;
   onClick: () => void;
 }
 
-export default function ItemCard({ item, onClick }: ItemCardProps) {
-  const imageUrl = item.image_url || menuImages[item.name];
+export default function ItemCard({ item, categoryName, onClick }: ItemCardProps) {
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = getMenuItemImage(item, categoryName);
+  const showImage = imageUrl && !imageError;
 
   return (
     <button
@@ -28,13 +33,14 @@ export default function ItemCard({ item, onClick }: ItemCardProps) {
     >
       {/* Image Container */}
       <div className="relative h-52 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
-        {imageUrl ? (
+        {showImage ? (
           <>
             <Image
               src={imageUrl}
               alt={item.name}
               fill
               className="object-cover group-hover:scale-110 transition-transform duration-700"
+              onError={() => setImageError(true)}
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -42,7 +48,7 @@ export default function ItemCard({ item, onClick }: ItemCardProps) {
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-7xl opacity-30 group-hover:scale-110 transition-transform duration-500">
-              🍽️
+              {DEFAULT_FOOD_EMOJI}
             </div>
           </div>
         )}
