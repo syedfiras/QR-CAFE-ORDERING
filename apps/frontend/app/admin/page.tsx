@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
     getAllActiveOrders,
     updateOrderStatus,
@@ -11,6 +13,8 @@ import {
     createMenuItem,
     updateMenuItem,
     deleteMenuItem,
+    checkAdminAuth,  // Added
+    logoutAdmin      // Added
 } from "../services/api";
 import MetricCard from "../components/MetricCard";
 import OrderCard from "../components/OrderCard";
@@ -20,7 +24,6 @@ import SkeletonCard from "../components/SkeletonCard";
 import EmptyState from "../components/EmptyState";
 import ConfirmModal from "../components/ConfirmModal";
 import HistoryModal from "../components/HistoryModal";
-import Image from "next/image";
 
 interface AdminOrder {
     id: string;
@@ -55,9 +58,11 @@ interface Metrics {
 }
 
 export default function AdminPage() {
+    const router = useRouter();
     const [orders, setOrders] = useState<AdminOrder[]>([]);
     const [metrics, setMetrics] = useState<Metrics | null>(null);
     const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(true); // Auth loading state
     const [paidOrders, setPaidOrders] = useState<Set<string>>(new Set());
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -82,6 +87,24 @@ export default function AdminPage() {
         maxQuantity: 1,
     });
 
+    // Check Auth on Mount
+    useEffect(() => {
+        const verifyAuth = async () => {
+            const { authenticated } = await checkAdminAuth();
+            if (!authenticated) {
+                router.push("/admin/login");
+            } else {
+                setAuthLoading(false);
+            }
+        };
+        verifyAuth();
+    }, [router]);
+
+    const handleLogout = async () => {
+        await logoutAdmin();
+        router.push("/admin/login");
+    };
+
     const loadOrders = async () => {
         try {
             const data = await getAllActiveOrders();
@@ -101,6 +124,8 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
+        if (authLoading) return;
+
         const loadData = async () => {
             await Promise.all([loadOrders(), loadMetrics()]);
             setLoading(false);
@@ -115,7 +140,7 @@ export default function AdminPage() {
         }, 5000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [authLoading]);
 
     const handleStatusChange = async (orderId: string, status: string) => {
         await updateOrderStatus(orderId, status);
@@ -187,6 +212,17 @@ export default function AdminPage() {
             );
     };
 
+    if (authLoading) {
+         return (
+             <div className="min-h-screen flex items-center justify-center bg-primary-50">
+                 <div className="flex flex-col items-center">
+                     <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4"></div>
+                     <p className="text-primary-800 font-bold animate-pulse">Verifying Access...</p>
+                 </div>
+             </div>
+         );
+    }
+
     const activeOrders = orders.filter(o => o.status === "PENDING" || o.status === "PREPARING");
     const unpaidCompletedOrders = orders.filter(o => o.status === "COMPLETED" && !paidOrders.has(o.id) && (!o.payments || o.payments.length === 0));
     const historyOrders = orders.filter(o => o.status === "CANCELLED" || (o.status === "COMPLETED" && (paidOrders.has(o.id) || (o.payments && o.payments.length > 0))));
@@ -255,18 +291,31 @@ export default function AdminPage() {
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        {/* Manage Items - Mobile Optimized */}
                         <button
                             onClick={() => setIsManageModalOpen(true)}
-                            className="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/10"
+                            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white p-2 sm:px-4 sm:py-2 rounded-xl text-sm font-bold transition-all border border-white/10"
+                            title="Manage Menu Items"
                         >
                             <span className="text-lg leading-none">⚙️</span>
-                            Manage Items
+                            <span className="hidden sm:inline">Manage Items</span>
                         </button>
+                        
+                        {/* Logout Button
+                        <button
+                             onClick={handleLogout}
+                             className="flex items-center gap-2 bg-red-500/20 hover:bg-red-500/30 text-red-100 p-2 sm:px-4 sm:py-2 rounded-xl text-sm font-bold transition-all border border-red-400/30"
+                             title="Logout"
+                        >
+                            <span className="text-lg leading-none">🚪</span>
+                             <span className="hidden sm:inline">Logout</span>
+                        </button>
+
                         <span className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-100 border border-green-400/30 rounded-full text-xs font-bold animate-pulse">
                             <span className="w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                            LIVE
-                        </span>
+                            <span className="hidden sm:inline">LIVE</span>
+                        </span> */}
                     </div>
                 </div>
             </header>
@@ -481,3 +530,4 @@ export default function AdminPage() {
         </div >
     );
 }
+

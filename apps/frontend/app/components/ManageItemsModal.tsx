@@ -150,7 +150,7 @@ export default function ManageItemsModal({
                     ) : (
                         <div className="space-y-10">
                             {/* Add Button Area */}
-                            <div className="flex justify-end">
+                            <div className="flex justify-center">
                                 <Button
                                     onClick={onAddNew}
                                     className="bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-200"

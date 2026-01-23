@@ -207,3 +207,33 @@ export const deleteMenuItem = async (id: string) => {
   return res.json();
 };
 
+// Admin Auth APIs
+export const loginAdmin = async (username: string, password: string) => {
+  const res = await fetch(`${BASE_URL}/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+    credentials: "include", // Required for cookies
+  });
+  return res.json();
+};
+
+export const logoutAdmin = async () => {
+  const res = await fetch(`${BASE_URL}/admin/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+  return res.json();
+};
+
+export const checkAdminAuth = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/admin/check`, {
+      credentials: "include", // Send cookie to server
+    });
+    if (res.status === 401) return { authenticated: false };
+    return res.json();
+  } catch (error) {
+    return { authenticated: false };
+  }
+};
