@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveOrder } from "../services/api";
@@ -29,7 +29,7 @@ interface Order {
   session_status?: "ACTIVE" | "COMPLETED" | "EXPIRED";
 }
 
-export default function OrderPage() {
+function OrderContent() {
   const params = useSearchParams();
   const router = useRouter();
   const table = params.get("table");
@@ -394,4 +394,17 @@ export default function OrderPage() {
     </>
   );
 }
+
+export default function OrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-4 border-primary-500 border-t-transparent animate-spin" />
+      </div>
+    }>
+      <OrderContent />
+    </Suspense>
+  );
+}
+
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { getMenu, createOrder, getActiveOrder } from "../services/api";
@@ -26,7 +26,7 @@ interface Category {
   menu_items: MenuItem[];
 }
 
-export default function MenuPage() {
+function MenuContent() {
   const params = useSearchParams();
   const router = useRouter();
   const table = params.get("table");
@@ -72,7 +72,7 @@ export default function MenuPage() {
     const checkActiveOrder = async () => {
       try {
         const activeOrder = await getActiveOrder(table, sessionToken || undefined);
-        
+
         if (activeOrder && !params.get("add_more") && !isNewOrder) {
           // Has active order for this session - redirect to order page
           router.push(`/order?table=${table}`);
@@ -147,7 +147,7 @@ export default function MenuPage() {
       };
 
       const response = await createOrder(payload);
-      
+
       // Check for session errors
       if (response.error) {
         if (response.session_status === "COMPLETED" || response.session_status === "EXPIRED") {
@@ -231,7 +231,7 @@ export default function MenuPage() {
       {sessionError && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 text-white px-4 py-3 text-center">
           <p className="text-sm font-medium">{sessionError}</p>
-          <button 
+          <button
             onClick={handleStartNewOrder}
             className="mt-2 px-4 py-1 bg-white text-red-500 rounded-full text-sm font-bold"
           >
@@ -353,18 +353,18 @@ export default function MenuPage() {
 
                 {/* Horizontal Scroll Grid */}
                 <div className="flex overflow-x-auto gap-5 pb-4 -mx-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
-                    {category.menu_items.map((item) => (
-                      <div key={item.id} className="shrink-0 w-72 snap-center">
-                        <ItemCard
-                          item={item}
-                          categoryName={category.name}
-                          onClick={() => {
-                            setSelectedItem(item);
-                            setSelectedCategoryName(category.name);
-                          }}
-                        />
-                      </div>
-                    ))}
+                  {category.menu_items.map((item) => (
+                    <div key={item.id} className="shrink-0 w-72 snap-center">
+                      <ItemCard
+                        item={item}
+                        categoryName={category.name}
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setSelectedCategoryName(category.name);
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -501,4 +501,17 @@ export default function MenuPage() {
     </div>
   );
 }
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-4 border-primary-500 border-t-transparent animate-spin" />
+      </div>
+    }>
+      <MenuContent />
+    </Suspense>
+  );
+}
+
 

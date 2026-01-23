@@ -1,7 +1,8 @@
 const getBaseUrl = () => {
   // 1. Prefer environment variable for production (Vercel)
   if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
+    const url = process.env.NEXT_PUBLIC_API_BASE_URL;
+    return url.endsWith("/api") ? url : `${url}/api`;
   }
 
   // 2. Fallback for local development
@@ -12,7 +13,7 @@ const getBaseUrl = () => {
     }
   }
 
-  return "/api"; 
+  return "/api";
 };
 
 const BASE_URL = getBaseUrl();
@@ -82,9 +83,9 @@ export const startSession = async (tableNumber: number, existingToken?: string):
   const res = await fetch(`${BASE_URL}/sessions/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
       table_number: tableNumber,
-      session_token: existingToken 
+      session_token: existingToken
     }),
   });
   return res.json();
@@ -119,7 +120,7 @@ export const createOrder = async (payload: {
 };
 
 export const getActiveOrder = async (tableId: string, sessionToken?: string): Promise<Order | null> => {
-  const url = sessionToken 
+  const url = sessionToken
     ? `${BASE_URL}/orders/active/${tableId}?session_token=${sessionToken}`
     : `${BASE_URL}/orders/active/${tableId}`;
   const res = await fetch(url);
