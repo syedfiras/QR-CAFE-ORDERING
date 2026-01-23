@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { getMenu, createOrder, getActiveOrder } from "../services/api";
+import { useSession } from "../hooks/useSession";
 import ItemCard from "../components/ItemCard";
 import ItemModal from "../components/ItemModal";
 import SkeletonCard from "../components/SkeletonCard";
@@ -29,6 +30,10 @@ export default function MenuPage() {
   const params = useSearchParams();
   const router = useRouter();
   const table = params.get("table");
+  const isNewOrder = params.get("new") === "true";
+
+  // Session handling
+  const { sessionToken, sessionStatus, isLoading: sessionLoading, isReadOnly, clearSession, initializeSession } = useSession(table);
 
   const [menu, setMenu] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,26 +44,48 @@ export default function MenuPage() {
   const [addingToExisting, setAddingToExisting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  // Handle new order - clear old session and create fresh one
+  useEffect(() => {
+    if (isNewOrder && table) {
+      clearSession();
+      // Small delay then reinitialize
+      const timer = setTimeout(() => {
+        initializeSession(Number(table));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isNewOrder, table, clearSession, initializeSession]);
 
   // Check for active order on mount
   useEffect(() => {
-    if (!table) {
-      router.push("/");
+    if (!table || sessionLoading) {
+      return;
+    }
+
+    if (!sessionToken && !isNewOrder) {
+      // No session yet - wait for it
       return;
     }
 
     const checkActiveOrder = async () => {
-      const activeOrder = await getActiveOrder(table);
-      if (activeOrder && !params.get("add_more") && !params.get("new")) {
-        // Redirect to order page if active order exists
-        router.push(`/order?table=${table}`);
-      } else if (params.get("add_more")) {
-        setAddingToExisting(true);
+      try {
+        const activeOrder = await getActiveOrder(table, sessionToken || undefined);
+        
+        if (activeOrder && !params.get("add_more") && !isNewOrder) {
+          // Has active order for this session - redirect to order page
+          router.push(`/order?table=${table}`);
+        } else if (params.get("add_more")) {
+          setAddingToExisting(true);
+        }
+      } catch (error) {
+        console.error("Error checking active order:", error);
       }
     };
 
     checkActiveOrder();
-  }, [table, router, params]);
+  }, [table, router, params, sessionToken, sessionLoading, isNewOrder]);
 
   // Fetch menu
   useEffect(() => {
@@ -80,6 +107,12 @@ export default function MenuPage() {
   }, [table]);
 
   const handleAddToCart = (item: MenuItem, quantity: number) => {
+    // Check if session is read-only
+    if (isReadOnly) {
+      setSessionError("Your session has ended. Please start a new order.");
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((c) => c.item.id === item.id);
       if (existing) {
@@ -94,7 +127,15 @@ export default function MenuPage() {
   const handlePlaceOrder = async () => {
     if (!table || cart.length === 0) return;
 
+    // Check if session is valid
+    if (isReadOnly) {
+      setSessionError("Your session has ended. Please start a new order.");
+      return;
+    }
+
     setPlacing(true);
+    setSessionError(null);
+
     try {
       const payload = {
         table_number: Number(table),
@@ -102,9 +143,20 @@ export default function MenuPage() {
           menu_item_id: c.item.id,
           quantity: c.quantity,
         })),
+        session_token: sessionToken || undefined,
       };
 
-      await createOrder(payload);
+      const response = await createOrder(payload);
+      
+      // Check for session errors
+      if (response.error) {
+        if (response.session_status === "COMPLETED" || response.session_status === "EXPIRED") {
+          setSessionError("Your session has ended. Please start a new order.");
+          return;
+        }
+        throw new Error(response.error);
+      }
+
       setCart([]);
       router.push(`/order?table=${table}`);
     } catch (error) {
@@ -137,6 +189,11 @@ export default function MenuPage() {
     setCart((prev) => prev.filter((c) => c.item.id !== itemId));
   };
 
+  const handleStartNewOrder = () => {
+    clearSession();
+    router.push(`/menu?table=${table}&new=true`);
+  };
+
   const totalItems = cart.reduce((sum, c) => sum + c.quantity, 0);
   const totalPrice = cart.reduce(
     (sum, c) => sum + c.item.price * c.quantity,
@@ -162,10 +219,29 @@ export default function MenuPage() {
   const [showCafeName, setShowCafeName] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Redirect if no table
+  if (!table) {
+    router.push("/");
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-primary-50">
+      {/* Session Error Banner */}
+      {sessionError && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 text-white px-4 py-3 text-center">
+          <p className="text-sm font-medium">{sessionError}</p>
+          <button 
+            onClick={handleStartNewOrder}
+            className="mt-2 px-4 py-1 bg-white text-red-500 rounded-full text-sm font-bold"
+          >
+            Start New Order
+          </button>
+        </div>
+      )}
+
       {/* Elegant Header */}
-      <header className="sticky top-0 z-40 shadow-soft-xl bg-primary-700">
+      <header className={`sticky top-0 z-40 shadow-soft-xl bg-primary-700 ${sessionError ? 'mt-16' : ''}`}>
         <div className="max-w-7xl mx-auto px-5 py-4">
           <div className="flex items-center justify-between">
             {/* Logo and Table Info */}
@@ -314,8 +390,8 @@ export default function MenuPage() {
         )}
       </main>
 
-      {/* Floating Cart */}
-      {cart.length > 0 && (
+      {/* Floating Cart - Only show if not read-only */}
+      {cart.length > 0 && !isReadOnly && (
         <div className="fixed bottom-4 left-4 right-4 z-40 animate-slide-up">
           <div
             className="max-w-7xl mx-auto rounded-3xl shadow-elegant p-5 border-2 bg-primary-700 border-primary-800"
@@ -325,9 +401,6 @@ export default function MenuPage() {
                 <p className="font-bold text-lg">
                   {totalItems} item{totalItems !== 1 ? "s" : ""} added
                 </p>
-                {/* <p className="text-sm text-primary-100/90">
-            Tap to review or edit your order
-          </p> */}
               </div>
               <button
                 type="button"
@@ -385,13 +458,6 @@ export default function MenuPage() {
                       >
                         +
                       </button>
-                      {/* <button
-                  type="button"
-                  onClick={() => handleRemove(cartItem.item.id)}
-                  className="ml-1 text-xs font-semibold text-primary-100/80 underline underline-offset-4"
-                >
-                  Remove
-                </button> */}
                     </div>
                   </div>
                 ))}
@@ -435,3 +501,4 @@ export default function MenuPage() {
     </div>
   );
 }
+

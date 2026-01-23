@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getActiveOrder } from "../services/api";
+import { useSession } from "../hooks/useSession";
 import StatusBadge from "../components/StatusBadge";
 import Button from "../components/Button";
 import SkeletonCard from "../components/SkeletonCard";
@@ -25,6 +26,7 @@ interface Order {
   status: "PENDING" | "PREPARING" | "COMPLETED" | "CANCELLED";
   items: OrderItem[];
   total: number;
+  session_status?: "ACTIVE" | "COMPLETED" | "EXPIRED";
 }
 
 export default function OrderPage() {
@@ -32,11 +34,11 @@ export default function OrderPage() {
   const router = useRouter();
   const table = params.get("table");
 
+  // Session handling
+  const { sessionToken, sessionStatus, isReadOnly, clearSession } = useSession(table);
+
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const [statusUpdatedAt, setStatusUpdatedAt] = useState<number | null>(null);
-  const [lastStatus, setLastStatus] = useState<string | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
 
   // Poll for order updates
@@ -48,16 +50,15 @@ export default function OrderPage() {
 
     const fetchOrder = async () => {
       try {
-        const data = await getActiveOrder(table);
+        // Use session token if available
+        const data = await getActiveOrder(table, sessionToken || undefined);
 
         if (!data) {
-          router.push(`/menu?table=${table}`);
+          // No order found - redirect to menu only if we don't have a completed session
+          if (!isReadOnly) {
+            router.push(`/menu?table=${table}`);
+          }
           return;
-        }
-
-        if (data.status === "COMPLETED" && lastStatus !== "COMPLETED") {
-          setStatusUpdatedAt(Date.now());
-          setLastStatus("COMPLETED");
         }
 
         setOrder(data);
@@ -70,20 +71,22 @@ export default function OrderPage() {
     fetchOrder();
     const interval = setInterval(fetchOrder, 5000);
     return () => clearInterval(interval);
-  }, [table, router, lastStatus]);
+  }, [table, router, sessionToken, isReadOnly]);
 
-  // Auto-redirect after 1 minute of being completed
-  useEffect(() => {
-    if (order?.status === "COMPLETED" && statusUpdatedAt) {
-      const timer = setTimeout(() => {
-        router.push(`/menu?table=${table}&new=true`);
-      }, 60000);
-      return () => clearTimeout(timer);
-    }
-  }, [order?.status, statusUpdatedAt, table, router]);
+  // NOTE: Auto-redirect after completion has been REMOVED
+  // The thank-you screen now stays visible indefinitely
 
   const handleAddMore = () => {
+    // Only allow adding more if session is still active
+    if (isReadOnly) {
+      return;
+    }
     router.push(`/menu?table=${table}&add_more=true`);
+  };
+
+  const handleStartNewOrder = () => {
+    clearSession();
+    router.push(`/menu?table=${table}&new=true`);
   };
 
   if (loading) {
@@ -113,6 +116,7 @@ export default function OrderPage() {
     );
   }
 
+  // Completed order screen - stays visible indefinitely
   if (order.status === "COMPLETED") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-primary-50">
@@ -127,6 +131,13 @@ export default function OrderPage() {
             We hope you enjoyed your meal at <span className="font-bold text-primary-700">Bistro Yahya</span>.
           </p>
 
+          {/* Order Summary */}
+          <div className="w-full bg-neutral-50 rounded-2xl p-4 mb-6 text-left">
+            <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider mb-2">Order Summary</p>
+            <p className="text-2xl font-bold text-neutral-800">₹{order.total}</p>
+            <p className="text-sm text-neutral-500">{order.items.filter(i => !i.is_cancelled).length} items</p>
+          </div>
+
           {/* Feedback Star Placeholder */}
           <div className="flex gap-2 mb-8">
             {[...Array(5)].map((_, i) => (
@@ -137,7 +148,7 @@ export default function OrderPage() {
           <div className="w-full space-y-4">
             <Button
               size="lg"
-              onClick={() => router.push(`/menu?table=${table}&new=true`)}
+              onClick={handleStartNewOrder}
               className="w-full py-5 rounded-2xl text-lg font-bold shadow-soft-lg"
             >
               Start New Order
@@ -146,7 +157,7 @@ export default function OrderPage() {
             <div className="pt-8 border-t border-neutral-200 w-full text-center">
               <p className="text-neutral-400 text-xs font-bold uppercase tracking-wider mb-2">New Customer?</p>
               <button
-                onClick={() => router.push(`/menu?table=${table}&new=true`)}
+                onClick={handleStartNewOrder}
                 className="text-sm font-bold text-primary-700"
               >
                 Not You? Order Now →
@@ -155,8 +166,9 @@ export default function OrderPage() {
           </div>
         </div>
 
+        {/* Removed: "Redirecting to menu in 1 minute..." text */}
         <p className="mt-12 text-neutral-400 text-xs font-medium italic">
-          Redirecting to menu in 1 minute...
+          Visit us again soon! 💜
         </p>
       </div>
     );
@@ -164,6 +176,9 @@ export default function OrderPage() {
 
   const activeItems = order.items.filter((item) => !item.is_cancelled);
   const cancelledItems = order.items.filter((item) => item.is_cancelled);
+
+  // Determine if we should show add more button
+  const canAddMore = !isReadOnly && order.status !== "CANCELLED";
 
   return (
     <>
@@ -279,7 +294,8 @@ export default function OrderPage() {
             <span>For assistance or faster billing, please call our staff.</span>
           </p>
 
-          {order.status !== "CANCELLED" && (
+          {/* Add More Items button - only show if session is active */}
+          {canAddMore && (
             <Button
               size="lg"
               variant="secondary"
@@ -288,6 +304,19 @@ export default function OrderPage() {
             >
               <span>➕ Add More Items</span>
             </Button>
+          )}
+
+          {/* Session expired notice */}
+          {isReadOnly && (
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 text-center">
+              <p className="text-amber-800 font-medium text-sm">Your session has ended.</p>
+              <button
+                onClick={handleStartNewOrder}
+                className="mt-2 text-primary-600 font-bold text-sm"
+              >
+                Start New Order →
+              </button>
+            </div>
           )}
 
           <div
@@ -314,9 +343,6 @@ export default function OrderPage() {
                 >
                   Pay Now
                 </Button>
-                {/* <p className="text-[11px] text-primary-700/90 font-medium uppercase tracking-wide text-center">
-                Show this screen at your table and scan to pay
-              </p> */}
               </div>
 
               <div className="flex items-start gap-3 p-4 rounded-2xl bg-neutral-50 border border-neutral-200">
@@ -368,3 +394,4 @@ export default function OrderPage() {
     </>
   );
 }
+

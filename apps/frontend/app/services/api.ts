@@ -39,6 +39,7 @@ export interface Order {
   items: OrderItem[];
   total: number;
   created_at?: string;
+  session_status?: "ACTIVE" | "COMPLETED" | "EXPIRED";
 }
 
 export interface Metrics {
@@ -50,6 +51,45 @@ export interface Metrics {
   cancelledToday: number;
 }
 
+// Session types
+export type SessionStatus = "ACTIVE" | "COMPLETED" | "EXPIRED";
+
+export interface SessionResponse {
+  session_token: string;
+  session_id: string;
+  status: SessionStatus;
+  table_number: number;
+  created_at: string;
+  is_valid: boolean;
+}
+
+export interface SessionValidation {
+  is_valid: boolean;
+  status: SessionStatus | null;
+  session_id?: string;
+  session_token?: string;
+  table_number?: number;
+  error?: string;
+}
+
+// Session APIs
+export const startSession = async (tableNumber: number, existingToken?: string): Promise<SessionResponse> => {
+  const res = await fetch(`${BASE_URL}/sessions/start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      table_number: tableNumber,
+      session_token: existingToken 
+    }),
+  });
+  return res.json();
+};
+
+export const validateSession = async (token: string): Promise<SessionValidation> => {
+  const res = await fetch(`${BASE_URL}/sessions/validate/${token}`);
+  return res.json();
+};
+
 // Menu APIs
 export const getMenu = async () => {
   const res = await fetch(`${BASE_URL}/menu`);
@@ -59,10 +99,11 @@ export const getMenu = async () => {
   return res.json();
 };
 
-// Order APIs
+// Order APIs - Updated to support session tokens
 export const createOrder = async (payload: {
   table_number: number;
   items: { menu_item_id: string; quantity: number }[];
+  session_token?: string;
 }) => {
   const res = await fetch(`${BASE_URL}/orders`, {
     method: "POST",
@@ -72,8 +113,11 @@ export const createOrder = async (payload: {
   return res.json();
 };
 
-export const getActiveOrder = async (tableId: string) => {
-  const res = await fetch(`${BASE_URL}/orders/active/${tableId}`);
+export const getActiveOrder = async (tableId: string, sessionToken?: string): Promise<Order | null> => {
+  const url = sessionToken 
+    ? `${BASE_URL}/orders/active/${tableId}?session_token=${sessionToken}`
+    : `${BASE_URL}/orders/active/${tableId}`;
+  const res = await fetch(url);
   return res.json();
 };
 
@@ -157,3 +201,4 @@ export const deleteMenuItem = async (id: string) => {
   }
   return res.json();
 };
+
