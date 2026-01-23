@@ -1,13 +1,18 @@
 const getBaseUrl = () => {
+  // 1. Prefer environment variable for production (Vercel)
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+
+  // 2. Fallback for local development
   if (typeof window !== "undefined") {
-    // If we're on a website, try to use the same host but port 5000 if local, 
-    // or just use a relative path if the backend is proxied/hosted alongside.
     const host = window.location.hostname;
     if (host === "localhost" || host === "127.0.0.1") {
       return "http://localhost:5000/api";
     }
   }
-  return "/api"; // Default to relative path for production/hosted environments
+
+  return "/api"; 
 };
 
 const BASE_URL = getBaseUrl();
