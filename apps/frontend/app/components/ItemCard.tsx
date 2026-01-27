@@ -29,10 +29,10 @@ export default function ItemCard({ item, categoryName, onClick }: ItemCardProps)
       onClick={onClick}
       disabled={!item.is_available}
       className="group relative rounded-3xl shadow-soft active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-left w-full border-2 border-neutral-200 overflow-hidden"
-      style={{background: '#FFFBF7'}}
+      style={{ background: '#FFFBF7' }}
     >
       {/* Image Container */}
-      <div className="relative h-52 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
+      <div className="relative h-32 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
         {showImage ? (
           <>
             <Image
@@ -52,7 +52,7 @@ export default function ItemCard({ item, categoryName, onClick }: ItemCardProps)
             </div>
           </div>
         )}
-        
+
         {/* Unavailable Overlay */}
         {!item.is_available && (
           <div className="absolute inset-0 bg-neutral-900/70 backdrop-blur-sm flex items-center justify-center">
@@ -71,18 +71,18 @@ export default function ItemCard({ item, categoryName, onClick }: ItemCardProps)
       </div>
 
       {/* Content */}
-      <div className="p-5 space-y-2">
-        <h3 className="font-bold text-neutral-900 text-lg leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors">
+      <div className="p-3 space-y-1">
+        <h3 className="font-bold text-neutral-900 text-sm leading-tight truncate group-hover:text-primary-600 transition-colors">
           {item.name}
         </h3>
-        
+
         {/* Price with accent background */}
         <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-primary-50 to-primary-100 px-3 py-1.5 rounded-full border border-primary-200">
-          <span className="text-primary-700 font-bold text-xl">₹{item.price}</span>
+          <span className="text-primary-700 font-bold text-lg">₹{item.price}</span>
         </div>
 
         {item.description && (
-          <p className="text-neutral-500 text-sm leading-relaxed line-clamp-2 pt-1">
+          <p className="text-neutral-500 text-xs leading-relaxed truncate pt-0.5">
             {item.description}
           </p>
         )}

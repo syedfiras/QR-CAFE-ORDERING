@@ -42,7 +42,6 @@ function MenuContent() {
   const [cart, setCart] = useState<{ item: MenuItem; quantity: number }[]>([]);
   const [placing, setPlacing] = useState(false);
   const [addingToExisting, setAddingToExisting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [sessionError, setSessionError] = useState<string | null>(null);
 
@@ -205,9 +204,7 @@ function MenuContent() {
       ...category,
       menu_items: category.menu_items.filter(
         (item) =>
-          item.is_available &&
-          (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.description?.toLowerCase().includes(searchQuery.toLowerCase()))
+          item.is_available
       ),
     }))
     .filter(
@@ -275,26 +272,10 @@ function MenuContent() {
         </div>
       </header>
 
-      {/* Search & Filter Section */}
+      {/* Category Filter Section */}
       {!loading && menu.length > 0 && (
         <div className="sticky top-[73px] z-30 bg-white/95 backdrop-blur-xl border-b border-neutral-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-5 py-4 space-y-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                className="w-full pl-12 pr-4 py-3.5 border-2 border-neutral-200 rounded-2xl bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
-                placeholder="Search delicious food..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
             {/* Category Pills */}
             <div className="flex overflow-x-auto gap-2 pb-2 -mx-5 px-5 [&::-webkit-scrollbar]:hidden">
               <button
@@ -354,7 +335,7 @@ function MenuContent() {
                 {/* Horizontal Scroll Grid */}
                 <div className="flex overflow-x-auto gap-5 pb-4 -mx-5 px-5 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
                   {category.menu_items.map((item) => (
-                    <div key={item.id} className="shrink-0 w-72 snap-center">
+                    <div key={item.id} className="shrink-0 w-48 snap-center">
                       <ItemCard
                         item={item}
                         categoryName={category.name}
@@ -379,7 +360,7 @@ function MenuContent() {
                 </div>
                 <p className="text-neutral-600 font-medium mb-2">No items found</p>
                 <button
-                  onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
+                  onClick={() => { setActiveCategory('all'); }}
                   className="text-primary-600 font-semibold hover:text-primary-700 transition-colors"
                 >
                   Clear all filters

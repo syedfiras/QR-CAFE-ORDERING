@@ -49,11 +49,11 @@ export default function ItemModal({
             onClick={onClose}
         >
             <div
-                className="bg-white w-full max-w-2xl rounded-[2rem] shadow-elegant max-h-[90vh] overflow-y-auto animate-slide-up border-2 border-primary-100"
+                className="bg-white w-full max-w-lg rounded-[2rem] shadow-elegant max-h-[90vh] overflow-y-auto animate-slide-up border-2 border-primary-100"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Image Section */}
-                <div className="relative h-80 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
+                <div className="relative h-56 w-full bg-gradient-to-br from-neutral-100 to-primary-50 overflow-hidden">
                     {showImage ? (
                         <Image
                             src={imageUrl}
@@ -93,10 +93,10 @@ export default function ItemModal({
                 </div>
 
                 {/* Content Section */}
-                <div className="p-8 space-y-6">
+                <div className="p-6 space-y-5">
                     {/* Header */}
                     <div className="flex justify-between items-start gap-6">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 leading-tight flex-1">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 leading-tight flex-1">
                             {item.name}
                         </h2>
                         <div className="bg-gradient-to-br from-primary-500 to-primary-600 text-white px-5 py-2.5 rounded-2xl shadow-elegant shrink-0">
