@@ -1,4 +1,4 @@
-# 🍽️ QR-Based Cafe/Restaurant Ordering System
+ # 🍽️ QR-Based Cafe/Restaurant Ordering System
 
 A QR-based ordering system for cafés and restaurants that allows customers to view the menu and place orders directly from their mobile devices, while staff manage orders through an admin dashboard.
 
